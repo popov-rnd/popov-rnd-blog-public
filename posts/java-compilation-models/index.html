@@ -1,0 +1,127 @@
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico?v=1" sizes="any"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Popov R&#38;D Blog" href="https://blog.popov-rnd.com/rss.xml"><meta name="generator" content="Astro v5.15.1"><!-- Canonical URL --><link rel="canonical" href="https://blog.popov-rnd.com/posts/java-compilation-models/"><!-- Primary Meta Tags --><title>Java Compilation Models: JIT vs AOT</title><meta name="title" content="Java Compilation Models: JIT vs AOT"><meta name="description" content="In this blog post, I dive deeper into how JIT actually works and when native image yields better"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://blog.popov-rnd.com/posts/java-compilation-models/"><meta property="og:title" content="Java Compilation Models: JIT vs AOT"><meta property="og:description" content="In this blog post, I dive deeper into how JIT actually works and when native image yields better"><meta property="og:image" content="https://blog.popov-rnd.com/_astro/cover.Czs7P5gk.webp"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.popov-rnd.com/posts/java-compilation-models/"><meta property="twitter:title" content="Java Compilation Models: JIT vs AOT"><meta property="twitter:description" content="In this blog post, I dive deeper into how JIT actually works and when native image yields better"><meta property="twitter:image" content="https://blog.popov-rnd.com/_astro/cover.Czs7P5gk.webp"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","url":"https://blog.popov-rnd.com","name":"Popov R&D Tech Blog","publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Java Compilation Models: JIT vs AOT","description":"In this blog post, I dive deeper into how JIT actually works and when native image yields better","image":"https://blog.popov-rnd.com/_astro/cover.Czs7P5gk.webp","datePublished":"2025-08-01T00:00:00.000Z","dateModified":"2025-08-01T00:00:00.000Z","author":{"@type":"Person","name":"Andrii Popov","url":"https://popov-rnd.com/#about-me"},"publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.popov-rnd.com/posts/java-compilation-models/"}}</script><link rel="stylesheet" href="/_astro/_slug_.DOmp40By.css"></head> <body class="bg-gray-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"> <header class="fixed top-0 left-0 w-full h-[65px]
+         bg-gray-50 dark:bg-neutral-800
+         font-ui text-neutral-800 dark:text-neutral-50 font-medium
+         flex items-center justify-between
+         px-[1%] gap-x-[1vw] z-50 shadow-md"> <a href="/" class="flex items-center justify-center space-x-3 no-underline"> <img src="/_astro/logo.WyeL1E5S.svg" alt="Popov R&D logo" class="shrink-0 w-[45px] h-[45px] opacity-80"> <div class="flex flex-col space-y-0 text-neutral-800  dark:text-neutral-50"> <span class="text-base font-normal">POPOV R&amp;D</span> <span class="text-xs font-normal">tech blog</span> </div> </a> <!-- Desktop / Tablet --><div class="hidden md:flex items-center gap-x-[1vw]"> <nav class="flex-1 flex items-center justify-end gap-x-3 lg:gap-x-5 shrink"> <a href="/" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> Home  </span> </a> <a href="/posts" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400 font-bold"> <span class="relative inline-block"> Posts <span class="absolute left-0 -bottom-1 h-0.5 w-full bg-lime-400"></span> </span> </a> <a href="/about" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> About  </span> </a> <button aria-label="Search" class="text-lg hover:text-lime-300 transition-colors"> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener("change",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event("astro:media"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="ZTtQD4" prefix="r11" component-url="/_astro/SearchButton.CG9KiFpX.js" component-export="SearchButton" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="media" opts="{&quot;name&quot;:&quot;SearchButton&quot;,&quot;value&quot;:&quot;(min-width: 768px)&quot;}" await-children><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg><!--astro:end--></astro-island> </button> <script>
+    const theme = (() => {
+        const stored = localStorage?.getItem("theme") ?? '';
+        if (["dark", "light"].includes(stored)) return stored;
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
+    })();
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+
+    const toggleTheme = () => {
+        const el = document.documentElement;
+        const isDark = el.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        // update knob visibility
+        const lightKnob = document.getElementById("lightKnob");
+        const darkKnob = document.getElementById("darkKnob");
+        if (lightKnob && darkKnob) {
+            lightKnob.style.opacity = isDark ? "0" : "1";
+            darkKnob.style.opacity = isDark ? "1" : "0";
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("themeButton")?.addEventListener("click", toggleTheme);
+    });
+</script> <button id="themeButton" type="button" class="relative inline-flex h-8 w-20 items-center rounded-full
+	        bg-[#C1FF72]/35 dark:bg-white/10 ring-1 ring-black/5 dark:ring-white/10
+	        shadow-sm transition-colors duration-200 focus:outline-none
+	        focus-visible:ring-2 focus-visible:ring-[#C1FF72]
+	        focus-visible:ring-offset-2 focus-visible:ring-offset-white
+	        dark:focus-visible:ring-offset-neutral-900"> <!-- Light knob --> <span id="lightKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 left-1 opacity-100">
+Light
+</span> <!-- Dark knob --> <span id="darkKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 right-1 opacity-0">
+Dark
+</span> </button> </nav> </div> <!-- Mobile / Hamburger --> <div class="md:hidden"> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="grfut" prefix="r10" component-url="/_astro/MenuGroupMobile.BhdERKXX.js" component-export="MenuGroupMobile" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;MenuGroupMobile&quot;,&quot;value&quot;:true}" await-children><button type="button" aria-label="Open menu" class="
+                inline-flex h-11 w-11 items-center justify-center
+                rounded-lg focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-prnd-accent focus-visible:ring-offset-2"><span class="relative block h-5 w-7"><span class="absolute left-0 top-0 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span><span class="absolute left-0 top-2.5 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-opacity duration-300 opacity-100"></span><span class="absolute right-0 top-5 block h-0.5 w-5 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span></span></button><div class="
+                fixed top-[65px] right-0
+                h-[calc(100vh-65px)] w-full overflow-y-auto
+                bg-gray-50 dark:bg-neutral-900 z-600
+                transform transition-transform duration-450 ease-in-out
+                translate-x-full"><nav class="flex flex-col divide-y divide-neutral-700"><a href="/" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Home</a><a href="/posts" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Posts</a><a href="/about" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">About</a><a href="/search" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Search</a></nav></div><!--astro:end--></astro-island> </div> </header> <main class="pt-[65px] w-full max-w-3xl mx-auto px-4 sm:px-8 lg:px-0 py-6 font-article"> <div class="text-left py-6"> <a href="/posts" class="
+                inline-flex items-center justify-center
+                px-2 py-1
+                bg-transparent
+                border
+                rounded-xl rounded-xl
+                text-sm
+                font-semibold
+                text-neutral-600 dark:text-neutral-200
+                hover:border-none hover:rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-50  hover:text-prnd-neon dark:hover:text-neutral-700
+                active:rounded-xl active:bg-neutral-800 dark:active:bg-neutral-50  active:text-neutral-50 dark:active:text-neutral-800
+                focus:outline-none focus:ring-2 focus:ring-offset-2
+                transition-all duration-500 ease-in-out"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 4.293a1 1 0 010 1.414L6.414 9H16a1 1 0 110 2H6.414l3.293 3.293a1 1 0 11-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg>Back</a> </div> <article class="flex flex-col items-start"> <div class="flex flex-wrap items-start justify-start gap-x-5 gap-y-2 text-xs md:text-sm text-neutral-500 dark:text-neutral-300 mb-8"> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <time datetime="2025-08-01T00:00:00.000Z"> Aug 1, 2025 </time> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg> 5 min read
+</span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"></path></svg> <span> aot </span> </span> </div> <!--I do not display image by default!-->  <div class="w-full text-left"> <h1 class="text-2xl/8 sm:text-3xl/9 font-normal leading-6 tracking-normal mb-6">Java Compilation Models: JIT vs AOT</h1> <p class="text-base/6 sm:text-lg/7 font-normal italic tracking-normal dark:text-neutral-200">"In this blog post, I dive deeper into how JIT actually works and when native image yields better"</p> <hr class="h-px border-0 mt-6 mb-4 w-full bg-gradient-to-r from-neutral-500 to-transparent"> </div> <div class="markdown-content w-full">  <p>Over the last decade,  I’ve seen Java evolve in parallel with the architectural shift from large monolithic apps to distributed microservices. This transition brought new design patterns — and new runtime demands. Once known for slow startup, Java has made major progress, driven by innovations like GraalVM’s AOT compilation.</p>
+<p>In this post, I’ll examine both runtime models — traditional JIT and newer AOT — and compare their pros, cons, and ideal use cases.</p>
+<p>𝐉𝐈𝐓. Java’s traditional compilation strategy since the beginning. It dynamically optimizes code at runtime by observing real usage patterns.</p>
+<p>𝐇𝐨𝐰 𝐢𝐭 𝐰𝐨𝐫𝐤𝐬
+When a method is first invoked, the JVM interprets its bytecode line-by-line. Once it becomes “hot” (frequently executed), the JIT compiler transforms it into optimized native machine code and stores it in a memory region called the code cache. Future invocations bypass interpretation and jump straight into native execution.</p>
+<p>✅ Pros
+• Best peak performance
+• Fast iteration during development
+• Full support for runtime features (reflection, classloading, proxies)</p>
+<p>🏗️ Best for
+• Huge monolithic apps
+• Long-lived services with stable lifecycles</p>
+<p>𝐀𝐎𝐓. A newer model introduced via GraalVM. It compiles code ahead of time into a native binary for your platform (x64, ARM).</p>
+<p>𝐇𝐨𝐰 𝐢𝐭 𝐰𝐨𝐫𝐤𝐬
+At build time, all reachable code is ahead-of-time (AOT) compiled into a standalone native executable. The result includes Substrate VM, a lightweight runtime that replaces the traditional JVM. There’s no interpreter or JIT at runtime, which enables blazing-fast startup times and low memory overhead. While this improves cold start and footprint, it comes at the cost of slightly reduced peak performance due to the lack of runtime profiling and optimization.</p>
+<p>✅ Pros
+• Near-instant cold start
+• Small and predictable memory footprint
+• Great for minimal containers and scaling scenarios</p>
+<p>🏗️ Best for
+• Tiny microservices
+• Serverless functions (pay-per-invocation)</p>
+<p>No surprise that the strengths of one model often reveal the weaknesses of another. As always in software engineering, it’s about choosing the right tool for the right job. JIT and AOT each serve specialized use cases and should be applied thoughtfully rather than universally. Framework support for AOT also varies: while Spring has made significant progress, it faced a steeper path compared to Micronaut and Quarkus, which were designed with AOT in mind from the start. GraalVM Native Image does support virtual threads with JDK 21+, so you can pair lightweight concurrency with near-instant startup, a functionality traditionally inherent to Go lang.
+In practice, Spring Boot and Quarkus expose VTs in both JVM and native modes (e.g., spring.threads.virtual.enabled=true, Quarkus VT guides).</p>
+<p>What’s your experience? Drop a comment 👇</p>
+<p>PS: This post was sparked by a great Spring I/O 2024 talk by Alina Yurenko (GraalVM Advocate @Oracle).</p>  </div> </article> </main> <footer class="mt-auto">  <hr class="mx-auto my-8 border-t border-neutral-300 dark:border-neutral-400 max-w-lg"> <div class="text-xs text-neutral-500 dark:text-neutral-300 flex flex-col justify-center items-center gap-1 pb-6"> <div><span>© 2025 Popov R&amp;D</span></div> <div>All rights reserved.</div> </div> </footer> </body></html>
