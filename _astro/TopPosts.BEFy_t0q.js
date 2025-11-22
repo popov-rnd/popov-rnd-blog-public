@@ -1,4 +1,4 @@
-import{j as e}from"./jsx-runtime.D_zvdyIk.js";import{r}from"./index.Be8AcK8B.js";const d=({posts:t})=>{const[s,a]=r.useState(null);return e.jsx("ul",{"aria-label":"Latest posts",className:"flex-1 space-y-5",children:t.map(l=>{const n=s===l.id;return e.jsx("li",{className:"w-full",children:e.jsx("a",{href:`/posts/${l.id}/`,className:"block",onPointerDown:()=>a(l.id),children:e.jsxs("div",{className:`
+import{j as e}from"./jsx-runtime.D_zvdyIk.js";import{r}from"./index.Be8AcK8B.js";const d=({posts:a})=>{const[s,t]=r.useState(null);return e.jsx("ul",{"aria-label":"Latest posts",className:"flex-1 space-y-5",children:a.map(l=>{const n=s===l.id;return e.jsx("li",{className:"w-full",children:e.jsx("a",{href:`/posts/${l.id}/`,className:"block",onMouseDown:()=>t(l.id),onTouchStart:()=>t(l.id),children:e.jsxs("div",{className:`
                                     rounded-2xl px-3 py-2 flex items-center gap-x-3
                                     transition-colors duration-150 ease-in-out
                                     outline outline-1 outline-blue-100 dark:outline-neutral-300 outline-offset-2 dark:outline-offset-0
