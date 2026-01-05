@@ -1,0 +1,258 @@
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico?v=1" sizes="any"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Popov R&#38;D Blog" href="https://blog.popov-rnd.com/rss.xml"><meta name="generator" content="Astro v5.15.1"><!-- Canonical URL --><link rel="canonical" href="https://blog.popov-rnd.com/posts/rabbitmq-vs-artemis-omb/"><!-- Primary Meta Tags --><title>RabbitMQ vs ActiveMQ Artemis benchmark</title><meta name="title" content="RabbitMQ vs ActiveMQ Artemis benchmark"><meta name="description" content="In this benchmark, we compare the 2 message brokers throughput and latency characteristics with OMB framework"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://blog.popov-rnd.com/posts/rabbitmq-vs-artemis-omb/"><meta property="og:title" content="RabbitMQ vs ActiveMQ Artemis benchmark"><meta property="og:description" content="In this benchmark, we compare the 2 message brokers throughput and latency characteristics with OMB framework"><meta property="og:site_name" content="Popov R&D Blog"><meta property="og:image" content="https://blog.popov-rnd.com/_astro/cover.CTbQylk-.webp"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.popov-rnd.com/posts/rabbitmq-vs-artemis-omb/"><meta property="twitter:title" content="RabbitMQ vs ActiveMQ Artemis benchmark"><meta property="twitter:description" content="In this benchmark, we compare the 2 message brokers throughput and latency characteristics with OMB framework"><meta property="twitter:image" content="https://blog.popov-rnd.com/_astro/cover.CTbQylk-.webp"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","url":"https://blog.popov-rnd.com","name":"Popov R&D Tech Blog","publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"RabbitMQ vs ActiveMQ Artemis benchmark","description":"In this benchmark, we compare the 2 message brokers throughput and latency characteristics with OMB framework","image":"https://blog.popov-rnd.com/_astro/cover.CTbQylk-.webp","datePublished":"2025-12-25T00:00:00.000Z","dateModified":"2025-12-25T00:00:00.000Z","author":{"@type":"Person","name":"Andrii Popov","url":"https://popov-rnd.com/#about-me"},"publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.popov-rnd.com/posts/rabbitmq-vs-artemis-omb/"}}</script><link rel="stylesheet" href="/_astro/_slug_.BKzO6t0X.css"></head> <body class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"> <header class="fixed top-0 left-0 w-full h-[65px]
+         bg-gray-50 dark:bg-neutral-800
+         font-default text-neutral-800 dark:text-neutral-50 font-medium
+         flex items-center justify-between
+         px-[1%] gap-x-[1vw] z-50 shadow-md"> <a href="/" class="flex items-center justify-center space-x-3 no-underline"> <img src="/_astro/logo.WyeL1E5S.svg" alt="Popov R&D logo" class="shrink-0 w-[45px] h-[45px] opacity-80"> <div class="flex flex-col space-y-0 text-neutral-800  dark:text-neutral-50"> <span class="text-base font-normal">POPOV R&amp;D</span> <span class="text-xs font-normal">tech blog</span> </div> </a> <!-- Desktop / Tablet --><div class="hidden md:flex items-center gap-x-[1vw]"> <nav class="flex-1 flex items-center justify-end gap-x-3 lg:gap-x-5 shrink"> <a href="/" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> Home  </span> </a> <a href="/posts" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400 font-bold"> <span class="relative inline-block"> Posts <span class="absolute left-0 -bottom-1 h-0.5 w-full bg-lime-400"></span> </span> </a> <a href="/about" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> About  </span> </a> <a href="/search" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block">  <div aria-label="Search" class="text-lg hover:text-lime-300 transition-colors"> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener("change",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event("astro:media"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="2fl2QU" prefix="r20" component-url="/_astro/SearchIcon.DS4bxQ8F.js" component-export="SearchIcon" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="media" opts="{&quot;name&quot;:&quot;SearchIcon&quot;,&quot;value&quot;:&quot;(min-width: 768px)&quot;}" await-children><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg><!--astro:end--></astro-island> </div>   </span> </a> <script>
+    const theme = (() => {
+        const stored = localStorage?.getItem("theme") ?? '';
+        if (["dark", "light"].includes(stored)) return stored;
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
+    })();
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+
+    const toggleTheme = () => {
+        const el = document.documentElement;
+        const isDark = el.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        // update knob visibility
+        const lightKnob = document.getElementById("lightKnob");
+        const darkKnob = document.getElementById("darkKnob");
+        if (lightKnob && darkKnob) {
+            lightKnob.style.opacity = isDark ? "0" : "1";
+            darkKnob.style.opacity = isDark ? "1" : "0";
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("themeButton")?.addEventListener("click", toggleTheme);
+    });
+</script> <button id="themeButton" type="button" class="relative inline-flex h-8 w-20 items-center rounded-full
+	        bg-[#C1FF72]/35 dark:bg-white/10 ring-1 ring-black/5 dark:ring-white/10
+	        shadow-sm transition-colors duration-200 focus:outline-none
+	        focus-visible:ring-2 focus-visible:ring-[#C1FF72]
+	        focus-visible:ring-offset-2 focus-visible:ring-offset-white
+	        dark:focus-visible:ring-offset-neutral-900"> <!-- Light knob --> <span id="lightKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 left-1 opacity-100">
+Light
+</span> <!-- Dark knob --> <span id="darkKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 right-1 opacity-0">
+Dark
+</span> </button> </nav> </div> <!-- Mobile / Hamburger --> <div class="md:hidden"> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="grfut" prefix="r19" component-url="/_astro/MenuGroupMobile.BhdERKXX.js" component-export="MenuGroupMobile" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;MenuGroupMobile&quot;,&quot;value&quot;:true}" await-children><button type="button" aria-label="Open menu" class="
+                inline-flex h-11 w-11 items-center justify-center
+                rounded-lg focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-prnd-accent focus-visible:ring-offset-2"><span class="relative block h-5 w-7"><span class="absolute left-0 top-0 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span><span class="absolute left-0 top-2.5 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-opacity duration-300 opacity-100"></span><span class="absolute right-0 top-5 block h-0.5 w-5 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span></span></button><div class="
+                fixed top-[65px] right-0
+                h-[calc(100vh-65px)] w-full overflow-y-auto
+                bg-gray-50 dark:bg-neutral-900 z-600
+                transform transition-transform duration-450 ease-in-out
+                translate-x-full"><nav class="flex flex-col divide-y divide-neutral-700"><a href="/" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Home</a><a href="/posts" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Posts</a><a href="/about" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">About</a><a href="/search" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Search</a></nav></div><!--astro:end--></astro-island> </div> </header> <main class="pt-[65px] w-full max-w-3xl mx-auto px-4 sm:px-8 lg:px-0 py-6 font-article"> <nav aria-label="Back to posts" class="text-left py-6"> <a href="/posts" class="
+                inline-flex items-center justify-center
+                px-2 py-1
+                bg-transparent
+                border
+                rounded-xl
+                text-sm
+                font-semibold
+                text-neutral-600 dark:text-neutral-200
+                hover:border-none hover:rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-50  hover:text-prnd-neon dark:hover:text-neutral-700
+                active:rounded-xl active:bg-neutral-800 dark:active:bg-neutral-50  active:text-neutral-50 dark:active:text-neutral-800
+                focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-110 active:scale-95
+                transition-all duration-500 ease-in-out"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 4.293a1 1 0 010 1.414L6.414 9H16a1 1 0 110 2H6.414l3.293 3.293a1 1 0 11-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg><span>Back</span></a> </nav> <article class="flex flex-col items-start"> <div class="flex flex-wrap items-start justify-start gap-x-5 gap-y-2 text-xs md:text-sm text-neutral-500 dark:text-neutral-300 mb-8"> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <time datetime="2025-12-25T00:00:00.000Z"> Dec 25, 2025 </time> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg> 10 min read
+</span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"></path></svg> <span class="inline-flex items-center gap-1"> <span class="inline-flex items-center"> <a href="/tags/messaging" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> messaging </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/benchmark" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> benchmark </a>  </span> </span> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> <a href="#about-author" class="italic hover:underline active:underline underline-offset-4">by Andrii Popov</a> </span> </div> <!--I do not display image by default!-->  <div class="w-full text-left"> <h1 class="text-3xl font-medium leading-8 tracking-normal mb-6">RabbitMQ vs ActiveMQ Artemis benchmark</h1> <p class="text-base/6 sm:text-lg/7 font-normal italic tracking-normal dark:text-neutral-200">
+"In this benchmark, we compare the 2 message brokers throughput and latency characteristics with OMB framework"</p> <hr class="h-px border-0 mt-6 mb-4 w-full bg-gradient-to-r from-neutral-500 to-transparent"> </div> <!-- Pagefind enhancements --> <div class="hidden" data-pagefind-meta="title"> RabbitMQ vs ActiveMQ Artemis benchmark </div> <div class="hidden" data-pagefind-meta="description"> In this benchmark, we compare the 2 message brokers throughput and latency characteristics with OMB framework </div> <div class="hidden" data-pagefind-meta="tags"> messaging, benchmark </div> <!-- ⭐ Add image to Pagefind metadata --> <div class="hidden" data-pagefind-meta="image"> /_astro/cover.CTbQylk-.webp </div> <div class="markdown-content w-full" data-pagefind-body>  <p>A few weeks ago, I came across a <em>ResearchGate</em> paper by <a href="https://www.researchgate.net/publication/371550505_Benchmarking_Message_Queues" rel="noopener noreferrer" target="_blank"><em>Rokin Maharjan</em></a> et al. that compared the performance of 4 messaging systems, based on <a href="https://github.com/openmessaging/benchmark" rel="noopener noreferrer" target="_blank"><strong>OpenMessaging Benchmark (OMB)</strong></a> framework.</p>
+<p>While the results for <em>Kafka</em> and <em>Redis</em> aligned with common expectations, the numbers for <em>RabbitMQ</em> and <em>Apache Artemis</em> made me pause.</p>
+<p>In their benchmark, <em>Rabbit</em> achieved higher throughput, while <em>Artemis</em> showed lower end-to-end latency.</p>
+<p>To better understand these results, I decided to run my own <em>focused benchmark</em>, limiting the scope to <em>Rabbit</em> and <em>Artemis</em> only.</p>
+<p>The goal was not to challenge the paper’s conclusions, but to <em>fill in the gaps it left</em>. In particular, the article provided little detail about the experimental conditions under which the benchmarks were run, e.g. whether publisher confirms were enabled, whether message durability was turned on, etc.</p>
+<p>These details are critical for interpreting the results, yet they were not discussed.</p>
+<p>Furthermore, the benchmarks themselves were conducted more than two years ago (in <em>2023</em>), making it valuable to revisit the comparison with a <em>fresh setup</em> and a deeper focus on behavior and interpretation rather than just outcomes.</p>
+<h2 id="brokers">Brokers<a class="autolink" aria-label="Link to this heading" href="#brokers">#</a></h2>
+<p>At the start, I had very <em>high-level</em> understanding about internal architectures of the systems being compared: <em>RabbitMQ and Apache Artemis</em>.</p>
+<p>What I knew was:</p>
+<ul>
+<li>that <a href="https://www.rabbitmq.com/docs" rel="noopener noreferrer" target="_blank"><em>RabbitMQ</em></a> is an old beast originated from around <em>2007</em>, written in rather rare programming language <em>Erlang</em>, known for its <em>actor-like</em> concurrency model based on lightweight processes and message passing. It is strongly <em>protocol-driven</em>, with <em>AMQP 0-9-1</em> defining its core semantics, and has evolved continuously while remaining actively developed to this day.</li>
+<li>that <a href="https://artemis.apache.org/components/artemis/documentation/latest/index.html" rel="noopener noreferrer" target="_blank"><em>Apache Artemis</em></a> is a complete re-write of <em>ActiveMQ</em> broker, using modern <em>Java 8+</em> concurrency, efficient event loops backed by <em>Netty</em> at transport layer. It supports the JMS specification and, as a result, can expose legacy enterprise semantics such as <em>XA / two-phase</em> commit transactions.</li>
+</ul>
+<p>Given this <em>limited</em> architectural context, the benchmark was as a <em>starting point</em> — a way to move beyond assumptions and develop a more accurate mental model of how these systems behave under comparable conditions, and where their real strengths and trade-offs lie.</p>
+<h2 id="method">Method<a class="autolink" aria-label="Link to this heading" href="#method">#</a></h2>
+<p>The OMB framework itself is reviewed separately in this <a href="https://blog.popov-rnd.com/posts/omb-framework" rel="noopener noreferrer" target="_blank"><em>blog post</em></a>, so I will not repeat its internal details here.</p>
+<p>Although OMB supports benchmarking in <em>distributed environments</em>, for this <em>initial</em> experiment I deliberately chose a <strong>local-only</strong> setup to reduce complexity and isolate broker behavior as much as possible.</p>
+<p>Both target systems — <em>RabbitMQ</em> and <em>Apache Artemis</em> — were deployed as Docker containers. The OMB framework itself was compiled and executed directly on the host machine.</p>
+<p>For each benchmark run the target broker container was recreated from scratch.
+Only one broker container was running at any given time (never both simultaneously).</p>
+<p>OMB was configured to execute each workload for <em>5 minutes</em>, with an additional <em>1-minute</em> warm-up period to allow the system to reach a steady state before measurements were recorded.</p>
+<p>To monitor resource usage during benchmark execution, I used Docker’s native runtime metrics via the <code>docker stats &lt;container-name&gt;</code> command, primarily to observe CPU and RAM utilization trends throughout each run.</p>
+<p>OMB reports publish throughput as a time series of per-interval <em>publishRate</em> samples. For comparison, in this study I reported the average sustained publish rate computed across the steady-state window.</p>
+<h3 id="hardware">Hardware<a class="autolink" aria-label="Link to this heading" href="#hardware">#</a></h3>
+<p>All experiments were conducted on my <em>desktop</em> Linux Mint PC, with the following configuration:</p>
+<ul>
+<li><code>CPU Intel Core i7, 8x2.9GHz</code></li>
+<li><code>SSD NVMe PCIe 4.0 x4, 500GB, write up to 5Gb/sec</code></li>
+<li><code>RAM DDR4-2666, 32Gb, up to 21.3 Gb/sec</code></li>
+</ul>
+<h3 id="software">Software<a class="autolink" aria-label="Link to this heading" href="#software">#</a></h3>
+<p>On my desktop PC I used the following software:</p>
+<ul>
+<li><code>OS Linux Mint (kernel 5.15.0)</code></li>
+<li><code>Docker engine (v. 29.1.3)</code></li>
+</ul>
+<p>I used the latest docker images available for both target systems:</p>
+<ul>
+<li><a href="https://hub.docker.com/layers/library/rabbitmq/4.2.2" rel="noopener noreferrer" target="_blank"><code>rabbitmq:4.2.2</code></a></li>
+<li><a href="https://hub.docker.com/layers/apache/activemq-artemis/2.44.0/" rel="noopener noreferrer" target="_blank"><code>apache/activemq-artemis:2.44.0</code></a></li>
+</ul>
+<p>For OMB framework I updated the official Java clients for both target systems:</p>
+<ul>
+<li><a href="https://mvnrepository.com/artifact/com.rabbitmq/amqp-client/5.28.0" rel="noopener noreferrer" target="_blank"><code>amqp-client v. 5.28.0 (dec. 2025)</code></a></li>
+<li><a href="https://mvnrepository.com/artifact/org.apache.activemq/artemis-core-client/2.44.0" rel="noopener noreferrer" target="_blank"><code>artemis-core-client v. 2.44.0 (nov. 2025</code></a></li>
+</ul>
+<p>Also, I compiled and ran the OMB process with <em>JDK 25 Temurin</em>.
+I was launching OMB via its <a href="https://github.com/openmessaging/benchmark/tree/master/bin" rel="noopener noreferrer" target="_blank"><em>native bash scripts</em></a>, supplied with the source code itself.</p>
+<h3 id="scenarios">Scenarios<a class="autolink" aria-label="Link to this heading" href="#scenarios">#</a></h3>
+<p>Overall I was able to benchmark around 3 different topologies:</p>
+<ul>
+<li><strong>Basic</strong>: 1 producer/ 1 topic/ 1 queue/ 1 consumer;</li>
+<li><strong>Independent queues</strong>: 8 producers/ 8 topics/ 8 queues/ 8 consumers;</li>
+<li><strong>Fan-out</strong>: 8 producers/ 1 topic/ 8 queues/ 8 consumers.</li>
+</ul>
+<p>The OMB framework created the required topologies automatically at startup based on the provided YAML configuration.</p>
+<p>For all experiments I used <em>single broker</em> deployment, <em>classic</em> queues for RabbitMQ and default queues for Apache Artemis.</p>
+<p>I played around number <strong>8</strong> to match the number of physical CPU cores available on my PC (+8 cores with <em>hyper-threading</em>). The assumption was that this would reveal how well the systems parallelize job across cores.</p>
+<p>I also attempted to evaluate scenarios with multiple producers and consumers interacting with a single queue.
+While OMB itself supports this topology, the available broker drivers differ in their capabilities: the Rabbit’s OMB driver allows this configuration, whereas the Apache Artemis’ OMB driver doesn’t support it out of the box.</p>
+<p>To keep scenarios comparable across both systems, this topology was therefore excluded from the benchmark.</p>
+<h2 id="results">Results<a class="autolink" aria-label="Link to this heading" href="#results">#</a></h2>
+<p>In the first benchmark (<strong>Fig. 1</strong>), I compared <em>max</em> throughput - the max publish rate, for different payload sizes. Both systems compete hard with no clear winner in all payloads sizes. The bigger message size - the less messages a system can ingest per sec. For non-durable messages Artemis showed <strong>+~25%</strong> better max throughput than Rabbit.</p>
+<figure class="m-6 text-center"> <img src="/_astro/fig1.65R60-CD_2fhdpS.webp" alt="Publish throughput vs message size for RabbitMQ and Apache Artemis" loading="lazy" decoding="async" fetchpriority="auto" width="836" height="517"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1. </strong> <p>Publish throughput vs message size</p> </figcaption> </figure>
+<p>Secondly (<strong>Fig. 2</strong>, log scale!), I compared publish latencies at <strong>p99</strong> with strictly fixed publish rate. For this experiment I selected <strong>1Kb</strong> payload as one of the most common in real production systems. Rabbit confirms pubs much faster (<em>sub. milliseconds</em>) than Artemis (<em>single digit milliseconds</em>). Interesting, that Artemis achieves the same sub. milliseconds publish latency for <em>non-durable</em> messages.</p>
+<figure class="m-6 text-center"> <img src="/_astro/fig2.DDcVUhIV_1nIWN.webp" alt="Pub. latency vs pub. rate for RabbitMQ and Apache Artemis" loading="lazy" decoding="async" fetchpriority="auto" width="841" height="517"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 2. </strong> <p>Pub. latency vs pub. rate</p> </figcaption> </figure>
+<p>Lastly (<strong>Fig. 3</strong>), I compared consumers’ throughput for 3 different topologies (described above). The chart reveals that Artemis can better parallelize work and achieve more efficient internal routing in scenarios with multiple queues.</p>
+<figure class="m-6 text-center"> <img src="/_astro/fig3.qUSHlh7b_1w34dC.webp" alt="Consume throughput vs topology for RabbitMQ and Apache Artemis" loading="lazy" decoding="async" fetchpriority="auto" width="841" height="517"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 3. </strong> <p>Consume throughput vs topology</p> </figcaption> </figure>
+<p>For all experiments, Rabbit’s docker containers utilized much less RAM (100-150Mb up to <strong>300Mb</strong>) then Artemis (300-700Mb up to <strong>1.3Gb</strong>), but at the same time more intensively used CPU (<strong>~+25-50%</strong>). Additionally, Artemis demonstrated a more <strong>even</strong> CPU utilization across cores.</p>
+<h2 id="interpretation">Interpretation<a class="autolink" aria-label="Link to this heading" href="#interpretation">#</a></h2>
+<p>First, <em>the main question</em>: <em><strong>“what prevents message brokers from ingesting more messages per sec? What is the first bottleneck they face, that architecturally plateaus throughput?”</strong></em></p>
+<p>During my experiments I observed that:</p>
+<ul>
+<li>CPU cores never loaded at 100%;</li>
+<li>Network card limits are not relevant for local set-up;</li>
+<li>RAM consumption stayed far less than was available in my system (up to 1.3Gb vs 32Gb available);</li>
+<li>SSD NVMe being able to do 5 GB/sec write bandwidth, never saturated (used 0.1% of what is capable).</li>
+</ul>
+<p>This indicates that hardware is <em>not the first limiting factor</em> in messaging systems.</p>
+<p>Unfortunately, most broker docs focus on <em>what can be tuned</em> rather than <em>why a throughput ceiling exists</em>. To understand the latter, it is useful to look at the <em>flow-control</em> mechanisms described by the brokers themselves:</p>
+<ul>
+<li><em>RabbitMQ</em>: <a href="https://www.rabbitmq.com/docs/flow-control" rel="noopener noreferrer" target="_blank">Flow control</a>.</li>
+<li><em>Apache Artemis</em>: <a href="https://artemis.apache.org/components/artemis/documentation/latest/flow-control.html#producer-flow-control" rel="noopener noreferrer" target="_blank">Producer flow control</a>;</li>
+</ul>
+<p>Both brokers explicitly implement <em>producer-side flow control</em>. Rather than pushing the system until hardware resources are <em>exhausted</em>, they continuously assess whether the broker can safely accept additional messages and deliberately <em>throttle</em> producers to preserve <em>internal stability</em> and <em>correctness</em>.</p>
+<p>Importantly, neither broker docs define a precise threshold, formula, or algorithm that determines when flow control is applied. The decision is based on internal coordination and safety constraints, not on a fixed resource limit that can be calculated in advance.</p>
+<p>As a result, what is ultimately measured in benchmarks is not raw hardware capacity, but the maximum rate at which the broker can repeatedly complete a full
+<code>accept -&gt; coordinate -&gt; acknowledge</code> cycle under the current runtime conditions.</p>
+<p>Another natural question is: <em><strong>why brokers activate these protective mechanisms long before any visible hardware exhaustion occurs</strong></em>?</p>
+<p>The answer lies in the messaging specifications they implement, namely:</p>
+<ul>
+<li><a href="https://www.rabbitmq.com/resources/specs/amqp0-9-1.pdf" rel="noopener noreferrer" target="_blank"><em>AMQP</em></a>;</li>
+<li><a href="https://jakarta.ee/specifications/messaging/3.1/jakarta-messaging-spec-3.1#message-order" rel="noopener noreferrer" target="_blank"><em>Jakarta Messaging</em> (JMS)</a>.</li>
+</ul>
+<p>These standards define the <em>classic messaging model</em>, which mandates <strong>ordered</strong> message acceptance and <strong>explicit acknowledgements</strong> within a queue or session. This ordering guarantee is not a best-effort optimization; it is a <em>correctness requirement</em>.</p>
+<p>To preserve these guarantees, brokers must <em>coordinate</em> message acceptance in a strictly ordered and internally <em>synchronized</em> way before messages are persisted or delivered.</p>
+<p>Internally, this means the broker protects a small shared piece of state, so only one message at a time is allowed to move forward, similar to a locked or synchronized critical section in code.</p>
+<p>This behavior can be understood through <a href="https://en.wikipedia.org/wiki/Amdahl%27s_law" rel="noopener noreferrer" target="_blank"><em>Amdahl’s Law</em></a>, which states that the presence of a mandatory serial execution path places an <em>upper bound</em> on achievable performance.</p>
+<p>As a result, throttling occurs based on how fast this synchronized acceptance and acknowledgement path can progress (to avoid runaway in-flight state and memory growth), not on raw CPU, SSD, or network utilization.</p>
+<p>Secondly, <em><strong>why as messages grow in size, msg/sec throughput drops</strong></em>?</p>
+<p>The above-mentioned <code>accept → coordinate -&gt; acknowledge</code> cycle has a largely fixed <em>coordination overhead</em> per message, but message size increases the work performed inside that cycle. Specifically, larger messages consume more producer credits (<a href="https://artemis.apache.org/components/artemis/documentation/latest/flow-control.html#producer-flow-control" rel="noopener noreferrer" target="_blank"><em>byte-based</em></a> flow control), increase copying and buffer-management costs, thus extending the time a message spends in the ordered acceptance path.</p>
+<p>Even if total bandwidth remains relatively low, each message holds the serialized acceptance path for longer, reducing the rate at which the next message can advance.</p>
+<p>As a result, <em>fewer</em> messages per second can pass through the same ordered coordination point.</p>
+<p>Lastly, <em><strong>why Apache Artemis publish latency is so huge (single digit ms) compared to RabbitMQ (sub. millisecond) for durable messages</strong></em>?</p>
+<p>This difference is primarily explained by how the two brokers implement durable message publish confirmation semantics.</p>
+<p>For a <em>single-node broker</em>, publish latency for durable messages is dominated by exactly 2 mechanisms — regardless of vendor:</p>
+<ul>
+<li>write into <code>OS page</code> cache (typically measured in <strong>µs</strong>), which guarantees durability against <em>broker process crashes</em>;</li>
+<li>sync into stable storage <a href="https://manpages.ubuntu.com/manpages/resolute/en/man2/fsync.2.html" rel="noopener noreferrer" target="_blank"><code>fsync</code></a> (typically measured in <strong>ms</strong>), which guarantees durability against <em>full power failures</em> (similar to <em>ACI<strong>D</strong></em> in <em>RDBMS</em>).</li>
+</ul>
+<p>There is no third magic source of durability latency.</p>
+<p>In Apache Artemis, a durable publish is not acknowledged until the message has been safely recorded in the broker’s <a href="https://artemis.apache.org/components/artemis/documentation/latest/persistence.html#file-journal-default" rel="noopener noreferrer" target="_blank"><em>journal</em></a>.</p>
+<p>Furthermore, the <em>broker-wide</em> <a href="https://artemis.apache.org/components/artemis/documentation/latest/persistence.html#configuring-the-message-journal" rel="noopener noreferrer" target="_blank"><code>journal-datasync</code></a> setting (enabled by default) determines whether Apache Artemis waits for <code>fsync</code> to complete before acknowledging a journal write. Hence, default behavior is to perform <code>fsync</code> before actual publish confirmation, hence latency in milliseconds.</p>
+<p>By contrast, Rabbit takes a more <em>relaxed approach</em> to durability acknowledgements by
+<a href="https://www.rabbitmq.com/docs/confirms#publisher-confirms-latency" rel="noopener noreferrer" target="_blank"><em>batching</em></a> disk writes more aggressively, decouple publisher confirms from immediate <code>fsync</code> in default configuration for <em>classic</em> queues.</p>
+<p>This blog post by Rabbit’s <a href="https://www.rabbitmq.com/blog/2025/01/17/how-are-the-messages-stored" rel="noopener noreferrer" target="_blank">maintainer</a>, explicitly discusses the risks, suggesting that for stronger guarantees, one can use <em><strong>quorum</strong></em> queues.</p>
+<p>This means that, in practice, Rabbit confirms publishes earlier, while persistence continues in the background or is shared across a batch of messages.</p>
+<p>In other words, Artemis trades higher publish latency for stricter, more explicit durability semantics, whereas Rabbit trades some immediacy in durability confirmation for lower publish latency.</p>
+<p>The observed benchmark results are therefore a direct reflection of these design <em>trade-offs</em>, not an anomaly or tuning issue.</p>
+<p>In a follow-up series, I plan to examine <em>high-availability</em> (HA) configurations for both brokers and how these additional coordination and replication requirements further affect throughput and latency.</p>  </div> </article> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <nav aria-label="Previous and next articles" class="grid grid-cols-2 gap-5"><div class="flex flex-col items-start gap-3
+                p-2
+                text-sm
+                bg-transparent
+                border border-zinc-500
+                rounded-sm"><p class="font-normal text-zinc-600 dark:text-zinc-300">Previous</p><a href="/posts/omb-framework/" class="
+                inline-flex items-center gap-2
+                font-semibold
+                text-neutral-600 dark:text-prnd-neon hover:scale-101 active:scale-99"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="shrink-0 w-4 h-4 text-neutral-600 dark:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"></path><path d="m11 18 1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"></path></svg><span>OpenMessaging benchmark framework</span></a></div></nav> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <aside id="about-author" class="mt-0 pt-6"> <section> <div class="flex gap-4 rounded-2xl bg-zinc-100/70 dark:bg-neutral-800/60 px-4 py-4 sm:px-5 sm:py-5"> <div class="shrink-0"> <img src="/_astro/avatar.h0uefq9r_Z1i5gFo.webp" alt="Andrii Popov" loading="lazy" decoding="async" fetchpriority="auto" width="259" height="259" class="h-12 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600"> </div> <div class="space-y-2 text-sm leading-relaxed"> <h2 class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+About the author
+</h2> <p class="font-medium text-neutral-900 dark:text-neutral-50">
+Andrii Popov · Popov R&amp;D — Independent Engineering Lab
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+Senior Java &amp; React engineer focused on practical JVM performance,
+                Spring ecosystem, and modern front-end tooling. I run independent
+                Popov R&amp;D experiments and write about what actually works in production.
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+If you’d like to collaborate, feel free to reach out on LinkedIn.
+</p> <ul class="flex flex-wrap gap-3 pt-1 text-xs"> <li> <a href="https://popov-rnd.com" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-cyan-600 dark:text-cyan-200 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48C141.13 48 48 141.13 48 256s93.13 208 208 208 208-93.13 208-208S370.87 48 256 48z"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48c-58.07 0-112.67 93.13-112.67 208S197.93 464 256 464s112.67-93.13 112.67-208S314.07 48 256 48z"></path><path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M117.33 117.33c38.24 27.15 86.38 43.34 138.67 43.34s100.43-16.19 138.67-43.34m0 277.34c-38.24-27.15-86.38-43.34-138.67-43.34s-100.43 16.19-138.67 43.34"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48v416m208-208H48"></path></svg> <span>Website</span> </a> </li> <li> <a href="https://www.linkedin.com/in/Popov85/" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg> <span>LinkedIn</span> </a> </li> <li> <a href="https://github.com/Popov85" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg> <span>GitHub</span> </a> </li> </ul> </div> </div> </section> </aside> </main> <script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><astro-island uid="Z2fQQ55" prefix="r11" component-url="/_astro/ScrollToTopButton.P8reXH2a.js" component-export="ScrollToTopButton" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;ScrollToTopButton&quot;,&quot;value&quot;:true}" await-children><button aria-label="Scroll to top" class="
+                fixed bottom-6 right-6 z-[999]
+                flex items-center justify-center
+                w-12 h-12 rounded-full
+                bg-neutral-700 dark:bg-neutral-200
+                text-neutral-200 dark:text-neutral-700
+                shadow-lg shadow-black/25
+                transition-all duration-300
+                active:scale-95
+                lg:hidden
+                opacity-0 pointer-events-none
+              "><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="text-2xl active:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M256 217.9L383 345c9.4 9.4 24.6 9.4 33.9 0 9.4-9.4 9.3-24.6 0-34L273 167c-9.1-9.1-23.7-9.3-33.1-.7L95 310.9c-4.7 4.7-7 10.9-7 17s2.3 12.3 7 17c9.4 9.4 24.6 9.4 33.9 0l127.1-127z"></path></svg></button><!--astro:end--></astro-island> <footer class="mt-auto">  <hr class="mx-auto my-8 border-t border-neutral-300 dark:border-neutral-400 max-w-lg"> <div class="text-xs text-neutral-500 dark:text-neutral-300 flex flex-col justify-center items-center gap-1 pb-6"> <div><span>© 2026 Popov R&amp;D</span></div> <div>All rights reserved.</div> </div> </footer> </body></html>
