@@ -1,0 +1,367 @@
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico?v=1" sizes="any"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Popov R&#38;D Blog" href="https://blog.popov-rnd.com/rss.xml"><meta name="generator" content="Astro v5.15.1"><!-- Canonical URL --><link rel="canonical" href="https://blog.popov-rnd.com/posts/java-compilation-strategies/"><!-- Primary Meta Tags --><title>Java compilation strategies: JIT vs AOT</title><meta name="title" content="Java compilation strategies: JIT vs AOT"><meta name="description" content="A structured look at Java’s compilation pipeline: bytecode compilation, JIT, AOT, and what they imply for performance and deployment."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://blog.popov-rnd.com/posts/java-compilation-strategies/"><meta property="og:title" content="Java compilation strategies: JIT vs AOT"><meta property="og:description" content="A structured look at Java’s compilation pipeline: bytecode compilation, JIT, AOT, and what they imply for performance and deployment."><meta property="og:site_name" content="Popov R&D Blog"><meta property="og:image" content="https://blog.popov-rnd.com/_astro/cover.BpKn0_Xa.webp"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.popov-rnd.com/posts/java-compilation-strategies/"><meta property="twitter:title" content="Java compilation strategies: JIT vs AOT"><meta property="twitter:description" content="A structured look at Java’s compilation pipeline: bytecode compilation, JIT, AOT, and what they imply for performance and deployment."><meta property="twitter:image" content="https://blog.popov-rnd.com/_astro/cover.BpKn0_Xa.webp"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","url":"https://blog.popov-rnd.com","name":"Popov R&D Tech Blog","publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Java compilation strategies: JIT vs AOT","description":"A structured look at Java’s compilation pipeline: bytecode compilation, JIT, AOT, and what they imply for performance and deployment.","image":"https://blog.popov-rnd.com/_astro/cover.BpKn0_Xa.webp","datePublished":"2026-02-19T00:00:00.000Z","dateModified":"2026-02-19T00:00:00.000Z","author":{"@type":"Person","name":"Andrii Popov","url":"https://popov-rnd.com/#about-me"},"publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.popov-rnd.com/posts/java-compilation-strategies/"}}</script><link rel="stylesheet" href="/_astro/_slug_.Cykb66ZZ.css"></head> <body class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"> <header class="fixed top-0 left-0 w-full h-[65px]
+         bg-gray-50 dark:bg-neutral-800
+         font-default text-neutral-800 dark:text-neutral-50 font-medium
+         flex items-center justify-between
+         px-[1%] gap-x-[1vw] z-50 shadow-md"> <a href="/" class="flex items-center justify-center space-x-3 no-underline"> <img src="/_astro/logo.WyeL1E5S.svg" alt="Popov R&D logo" class="shrink-0 w-[45px] h-[45px] opacity-80"> <div class="flex flex-col space-y-0 text-neutral-800  dark:text-neutral-50"> <span class="text-base font-normal">POPOV R&amp;D</span> <span class="text-xs font-normal">tech blog</span> </div> </a> <!-- Desktop / Tablet --><div class="hidden md:flex items-center gap-x-[1vw]"> <nav class="flex-1 flex items-center justify-end gap-x-3 lg:gap-x-5 shrink"> <a href="/" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> Home  </span> </a> <a href="/posts" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400 font-bold"> <span class="relative inline-block"> Posts <span class="absolute left-0 -bottom-1 h-0.5 w-full bg-lime-400"></span> </span> </a> <a href="/about" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> About  </span> </a> <a href="/search" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block">  <div aria-label="Search" class="text-lg hover:text-lime-300 transition-colors"> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener("change",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event("astro:media"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="2fl2QU" prefix="r20" component-url="/_astro/SearchIcon.DS4bxQ8F.js" component-export="SearchIcon" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="media" opts="{&quot;name&quot;:&quot;SearchIcon&quot;,&quot;value&quot;:&quot;(min-width: 768px)&quot;}" await-children><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg><!--astro:end--></astro-island> </div>   </span> </a> <script>
+    const theme = (() => {
+        const stored = localStorage?.getItem("theme") ?? '';
+        if (["dark", "light"].includes(stored)) return stored;
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
+    })();
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+
+    const toggleTheme = () => {
+        const el = document.documentElement;
+        const isDark = el.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        // update knob visibility
+        const lightKnob = document.getElementById("lightKnob");
+        const darkKnob = document.getElementById("darkKnob");
+        if (lightKnob && darkKnob) {
+            lightKnob.style.opacity = isDark ? "0" : "1";
+            darkKnob.style.opacity = isDark ? "1" : "0";
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("themeButton")?.addEventListener("click", toggleTheme);
+    });
+</script> <button id="themeButton" type="button" class="relative inline-flex h-8 w-20 items-center rounded-full
+	        bg-[#C1FF72]/35 dark:bg-white/10 ring-1 ring-black/5 dark:ring-white/10
+	        shadow-sm transition-colors duration-200 focus:outline-none
+	        focus-visible:ring-2 focus-visible:ring-[#C1FF72]
+	        focus-visible:ring-offset-2 focus-visible:ring-offset-white
+	        dark:focus-visible:ring-offset-neutral-900"> <!-- Light knob --> <span id="lightKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 left-1 opacity-100">
+Light
+</span> <!-- Dark knob --> <span id="darkKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 right-1 opacity-0">
+Dark
+</span> </button> </nav> </div> <!-- Mobile / Hamburger --> <div class="md:hidden"> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="grfut" prefix="r19" component-url="/_astro/MenuGroupMobile.BhdERKXX.js" component-export="MenuGroupMobile" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;MenuGroupMobile&quot;,&quot;value&quot;:true}" await-children><button type="button" aria-label="Open menu" class="
+                inline-flex h-11 w-11 items-center justify-center
+                rounded-lg focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-prnd-accent focus-visible:ring-offset-2"><span class="relative block h-5 w-7"><span class="absolute left-0 top-0 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span><span class="absolute left-0 top-2.5 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-opacity duration-300 opacity-100"></span><span class="absolute right-0 top-5 block h-0.5 w-5 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span></span></button><div class="
+                fixed top-[65px] right-0
+                h-[calc(100vh-65px)] w-full overflow-y-auto
+                bg-gray-50 dark:bg-neutral-900 z-600
+                transform transition-transform duration-450 ease-in-out
+                translate-x-full"><nav class="flex flex-col divide-y divide-neutral-700"><a href="/" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Home</a><a href="/posts" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Posts</a><a href="/about" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">About</a><a href="/search" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Search</a></nav></div><!--astro:end--></astro-island> </div> </header> <main class="pt-[65px] w-full max-w-3xl mx-auto px-4 sm:px-8 lg:px-0 py-6 font-article"> <nav aria-label="Back to posts" class="text-left py-6"> <a href="/posts" class="
+                inline-flex items-center justify-center
+                px-2 py-1
+                bg-transparent
+                border
+                rounded-xl
+                text-sm
+                font-semibold
+                text-neutral-600 dark:text-neutral-200
+                hover:border-none hover:rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-50  hover:text-prnd-neon dark:hover:text-neutral-700
+                active:rounded-xl active:bg-neutral-800 dark:active:bg-neutral-50  active:text-neutral-50 dark:active:text-neutral-800
+                focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-110 active:scale-95
+                transition-all duration-500 ease-in-out"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 4.293a1 1 0 010 1.414L6.414 9H16a1 1 0 110 2H6.414l3.293 3.293a1 1 0 11-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg><span>Back</span></a> </nav> <article class="flex flex-col items-start"> <div class="flex flex-wrap items-start justify-start gap-x-5 gap-y-2 text-xs md:text-sm text-neutral-500 dark:text-neutral-300 mb-8"> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <time datetime="2026-02-19T00:00:00.000Z"> Feb 19, 2026 </time> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg> 15 min read
+</span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"></path></svg> <span class="inline-flex items-center gap-1"> <span class="inline-flex items-center"> <a href="/tags/jvm" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> jvm </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/performance" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> performance </a>  </span> </span> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> <a href="#about-author" class="italic hover:underline active:underline underline-offset-4">by Andrii Popov</a> </span> </div> <!--I do not display image by default!-->  <div class="w-full text-left"> <h1 class="text-3xl font-medium leading-8 tracking-normal mb-6">Java compilation strategies: JIT vs AOT</h1> <p class="text-base/6 sm:text-lg/7 font-normal italic tracking-normal dark:text-neutral-200">
+"A structured look at Java’s compilation pipeline: bytecode compilation, JIT, AOT, and what they imply for performance and deployment."</p> <hr class="h-px border-0 mt-6 mb-4 w-full bg-gradient-to-r from-neutral-500 to-transparent"> </div> <!-- Pagefind enhancements --> <div class="hidden" data-pagefind-meta="title"> Java compilation strategies: JIT vs AOT </div> <div class="hidden" data-pagefind-meta="description"> A structured look at Java’s compilation pipeline: bytecode compilation, JIT, AOT, and what they imply for performance and deployment. </div> <div class="hidden" data-pagefind-meta="tags"> jvm, performance </div> <!-- ⭐ Add image to Pagefind metadata --> <div class="hidden" data-pagefind-meta="image"> /_astro/cover.BpKn0_Xa.webp </div> <div class="markdown-content w-full" data-pagefind-body>  <p>There is no shortage of articles, blog posts and conf materials on Java compilation, yet after reading many of them, the understanding often remains <em>fragmented</em>.</p>
+<p>Individual compilation mechanisms are explained in <em>isolation</em>, often partially or completely detached from official documentation, without forming a coherent mental model of how the system works as a whole.</p>
+<p>In this post, I’ll try to assemble this model by examining 2 Java compilation strategies: the traditional <em>JIT</em> (Just-in-time) and a newer <em>AOT</em> (Ahead-of-Time), to understand how well each aligns with the modern deployment constraints, compare their trade-offs, limitations, and suggest ideal use cases.</p>
+<p>My goal is to extract the core <em><strong>runtime differences</strong></em> that naturally answers many of the questions production engineers raise when deciding what to adopt.</p>
+<p>But first, let’s step back and look at the <em>retrospective</em>: where we’ve been and where we are now. This context helps clarify how Java’s compilation strategies evolved and makes the underlying <em>cause-and-effect</em> relationships much easier to see.</p>
+<h2 id="retrospective">Retrospective<a class="autolink" aria-label="Link to this heading" href="#retrospective">#</a></h2>
+<h3 id="javas-original-compilation-design">Java’s original compilation design<a class="autolink" aria-label="Link to this heading" href="#javas-original-compilation-design">#</a></h3>
+<p>In the <strong>mid-90s</strong>, serious server software was often a long-running application server process, that shaped the Java initial compilation design.</p>
+<p><em>Native-compiled</em> models (<em>C/C++</em>) were fast but usually required separate builds per <em>OS/CPU</em>, resulting in N-platform-specific binaries to distribute (that era had lots of serious platforms).</p>
+<p><em>Interpreted</em> models (<em>Perl, early Python</em>) were easier to move across platforms (shipping source code, and offering an interpreter per platform), but often too slow for hot server paths.</p>
+<p>Given obvious drawbacks of these models, Java followed a 3-d path seen in <em>Smalltalk</em>-style VM systems: compile sources to portable bytecode, run it on a cross-platform VM, and use JIT compilation to turn hot bytecode into native machine code at runtime.</p>
+<p>In that context, it was a practical trade-off: portable distribution with runtime performance, because long-lived server processes allowed runtime profiling and optimization to pay off.</p>
+<h3 id="new-era-architectural-shift">New era: architectural shift<a class="autolink" aria-label="Link to this heading" href="#new-era-architectural-shift">#</a></h3>
+<p>By the <strong>early 2010s</strong>, the assumptions under which Java’s JIT strategy had worked well started to change.</p>
+<p>Applications increasingly ran in containerized environments (<em>Docker, ~2013</em>; <em>Kubernetes, ~2016</em>) and as serverless functions (<em>AWS Lambda, ~2014</em>).</p>
+<p>This shift did not make JIT unsuitable by itself, but it changed how apps were run: services now consisted of many <em>short-lived</em> instances that scaled up and down frequently.</p>
+<p>In such setups, fast startup became more important than long-term peak performance, and per-instance memory usage directly affected how many instances could run and how much the infrastructure cost.</p>
+<h3 id="javas-dual-compilation-strategy">Java’s dual compilation strategy<a class="autolink" aria-label="Link to this heading" href="#javas-dual-compilation-strategy">#</a></h3>
+<p>By the <strong>late 2010s</strong>, the JVM ecosystem began to respond to these new constraints more systematically.</p>
+<p>The <a href="https://labs.oracle.com/pls/apex/f?p=94065:12:115950811344371:47" rel="noopener noreferrer" target="_blank"><em>GraalVM</em></a> research project gradually shifted its focus from building an alternative JIT compiler toward AOT compilation (<a href="https://youtu.be/t4Hwra4t83w?t=181" rel="noopener noreferrer" target="_blank"><em>~2018, v1.0</em></a>), where it has since achieved serious, production-ready results.</p>
+<p>At the same time, newer Java frameworks such as <em>Micronaut</em> (<a href="https://micronaut.io/2018/05/23/micronaut-open-sourced/" rel="noopener noreferrer" target="_blank">~2018</a>) and <em>Quarkus</em> (<a href="https://quarkus.io/blog/announcing-quarkus-1-0/" rel="noopener noreferrer" target="_blank">~2019</a>) emerged with <em>AOT-native</em> design principles, while more established frameworks like <em>Spring Boot</em>(<a href="https://spring.io/blog/2022/11/24/spring-boot-3-0-goes-ga" rel="noopener noreferrer" target="_blank"><em>~2022, v3.0</em></a>) invested significant effort in adapting their internals to support AOT as an additional option.</p>
+<p>As a result, the Java ecosystem converged toward a <em>“dual compilation strategy”</em>, where JIT and AOT coexist and are selected based on deployment needs rather than ideology.</p>
+<h2 id="java-compilation-break-down">Java compilation break down<a class="autolink" aria-label="Link to this heading" href="#java-compilation-break-down">#</a></h2>
+<p>Having established the historical context, we can now break down how modern Java compilation works.</p>
+<p>First of all we need to admit that Java does not define a formal <em>compilation pipeline</em> in its specifications.</p>
+<p>Instead, the structure of the Java toolchain and JVM impl.-s naturally results in a <em>multi-stage</em> compilation process (the term is <em>non-official</em>, but reflects how the platform operates in practice).</p>
+<ol>
+<li><em><strong>Stage #1</strong></em>: Source code (.java) -&gt; bytecode (.class), occurs strictly at build time;</li>
+<li><em><strong>Stage #2</strong></em>: Bytecode -&gt; native code, may occur either at runtime or at build time.</li>
+</ol>
+<p>The second stage is where compilation strategies diverge and has 2 alternative, mutually exclusive paths:</p>
+<ul>
+<li><em><strong>Stage #2a</strong></em>: (traditional, referred as <em>JIT</em>), since <em>the day 1</em>, bytecode is compiled to native code inside a running JVM (HotSpot) at runtime;</li>
+<li><em><strong>Stage #2b</strong></em>: (newer, referred as <em>AOT</em>), since the first release of GraalVM, bytecode is compiled to native code ahead of execution during a secondary build phase (via GraalVM compiler).</li>
+</ul>
+<p>Below, each of these stages is discussed in detail.</p>
+<h3 id="stage-1-sources-to-bytecode-compilation">Stage #1: sources-to-bytecode compilation<a class="autolink" aria-label="Link to this heading" href="#stage-1-sources-to-bytecode-compilation">#</a></h3>
+<p>While the JVM specifications do not mandate a particular compiler for <em>Stage #1</em>, <em>OpenJDK</em> — open-source reference impl. of the <em>Java SE Platform</em> — includes <code>javac</code> the canonical Java compiler responsible for translating Java source code into bytecode, now packaged as the <a href="https://docs.oracle.com/en/java/javase/25/docs/api/jdk.compiler/module-summary.html" rel="noopener noreferrer" target="_blank"><em>jdk.compiler</em></a> module inside JDK.</p>
+<p>When a Java SE-compliant JDK distribution, such as <em>Eclipse Temurin</em>, <em>BellSoft Liberica</em>, or <em>Amazon Corretto</em>, is installed on a system, the <code>javac</code> compiler is guaranteed to be available as a command-line tool. Invoking <code>javac</code> command runs a thin <em>OS-level launcher</em> (shell script or native stub) that starts the Java compiler itself, producing JVM bytecode as output.</p>
+<p>While the command’s generic form is fully <a href="https://docs.oracle.com/en/java/javase/25/docs/specs/man/javac.html" rel="noopener noreferrer" target="_blank"><em>documented</em></a>, opinionated <em>“production minimum”</em> form is typically looks like this:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>javac \</span></span>
+<span class="line"><span>    --release &lt;N&gt; \</span></span>
+<span class="line"><span>    -d &lt;out&gt; \</span></span>
+<span class="line"><span>    @sources.txt</span></span></code></pre>
+<p>where:</p>
+<ul>
+<li><em><code>--release &lt;N&gt;</code></em>: compiles the code as if targeting Java &lt;N&gt; version;</li>
+<li><em><code>-d &lt;out&gt;</code></em>: output directory for generated <em>.class</em> files;</li>
+<li><em><code>@sources.txt</code></em>: argument file containing the list of file paths (<em>.java</em> source files) to compile (scales to large projects and avoids command-line length limits);</li>
+</ul>
+<p>Today, <code>javac</code> primarily serves as a human-facing reference tool, while real-world building tools like Maven and IDEs usually drive the compiler through the <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.compiler/javax/tools/JavaCompiler.html" rel="noopener noreferrer" target="_blank"><em>JavaCompiler</em></a> <em>SPI</em> (Service Provider Interface).</p>
+<p>To have a <em>broader idea</em> what is happening under the hood during this <em>Stage #1</em> compilation phase, I provide some excerpts from the official <a href="https://openjdk.org/groups/compiler/doc/compilation-overview/index.html" rel="noopener noreferrer" target="_blank">documentation</a>.</p>
+<p>The entire compilation process is generally divided into <a href="https://openjdk.org/groups/compiler/doc/compilation-overview/index.html" rel="noopener noreferrer" target="_blank"><em><strong>3 phases</strong></em></a>:</p>
+<ol>
+<li><em><strong>Parse &amp; Enter</strong></em>: turns raw source code text into syntax trees and symbol tables;</li>
+</ol>
+<ul>
+<li><em>Tokenization</em> (scanning): reads raw source text and extracts <em>tokens</em> (keywords, identifiers, literals, operators);</li>
+<li><em>Parsing</em> (parsing): builds an <em>Abstract Syntax Tree (AST)</em> forest from the token stream according to Java grammar (one tree per <em>.java</em> file), to get the hierarchical structure of the code.</li>
+<li><em>Symbol tables</em> (entering): creates a global table of all available symbols (dictionary), conceptually a map of maps: package -&gt; class -&gt; members. Symbol tables exist to make name resolution fast: <em>O(1)</em> lookup within scopes, instead of repeated AST scans.</li>
+</ul>
+<ol start="2">
+<li><em><strong>Annotation processing</strong></em>: (<a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.compiler/javax/annotation/processing/package-summary.html" rel="noopener noreferrer" target="_blank"><em>JSR-269</em></a>) runs annotation processors;</li>
+</ol>
+<ul>
+<li><em>Recursive processing</em>: compiler discovers annotation processors that impl. <a href="https://docs.oracle.com/en/java/javase/25/docs/api/java.compiler/javax/annotation/processing/Processor.html" rel="noopener noreferrer" target="_blank">Processor</a> interface; processors are executed in rounds, and if any processor generates new source files, those files are parsed and entered, symbol tables are extended, and another round starts until no new source files are produced.</li>
+</ul>
+<ol start="3">
+<li><em><strong>Analyse &amp; Generate</strong></em>;</li>
+</ol>
+<ul>
+<li><em>Attribution</em>: walks the AST and resolves each name and expression to a specific symbol (from the global table) and static type, selecting the correct overloads, inferring generic types, and checking access rules, without changing the tree structure, but enriching it with “semantic information”.</li>
+<li><em>Flow analysis</em>: traverses method bodies using control-flow graphs to verify correct execution paths, ensuring variables are definitely assigned before use and detecting unreachable or invalid control-flow statements;</li>
+<li><em>Generics translation</em>: rewrites the attributed AST to eliminate generic types, applying <em>type erasure</em>, inserting required casts, and generating <a href="https://docs.oracle.com/javase/tutorial/java/generics/bridgeMethods.html" rel="noopener noreferrer" target="_blank"><em>bridge methods</em></a>, so the code conforms to the JVM’s non-generic type system.</li>
+<li><em>Desugaring</em> (lowering): rewrites high-level Java constructs into simpler forms, e.g. <code>foreach</code> -&gt; <code>for loop</code>; <code>try-with-resources -&gt; try/finally</code> or <code>records</code> -&gt; <code>final classes</code> with an all argument constructor.</li>
+<li><em>Bytecode generation</em>: walks the lowered AST and emits JVM bytecode for method bodies, producing <em>Code</em> attributes (instructions, operand stack and local limits, exception tables), after which the class is written to a <em>.class</em> file.</li>
+</ul>
+<p>The visualization of this step is present on <em><strong>Fig. 1</strong></em> (present for a case when the link to the official <a href="https://openjdk.org/groups/compiler/doc/compilation-overview/index.html" rel="noopener noreferrer" target="_blank">doc</a> is no longer exists).</p>
+<figure class="m-6 text-center"> <img src="/_astro/javac.Dy3Ds67__Z7x8WO.webp" alt="Java sources-to-bytecode compilation" loading="lazy" decoding="async" fetchpriority="auto" width="752" height="178"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1 </strong> <p>The process of compiling from sources codes text <em><strong>.java</strong></em> into bytecode <em><strong>.class</strong></em>.</p> </figcaption> </figure>
+<p>As is shown, turning Java sources into <em>bytecode</em> is rather <em>expensive</em>, so doing it ahead of time was a smart trade-off.</p>
+<p>This cost also scales <em>linearly</em> with project size: the more classes a project contains, the more work the compiler must do to produce bytecode — which further justifies paying this cost once during the build rather than at runtime.</p>
+<p>This step completes the build phase and produces a <em>portable artifact</em>: Java programs are distributed as <em>bytecode</em> (typically packaged into <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/basicsindex.html" rel="noopener noreferrer" target="_blank">*<strong>.jar</strong></a> archives), ready to be launched on any platform where a JVM is available.</p>
+<p>The result is a compact, <em><strong>stack-based</strong></em> instruction set that’s easy for the JVM to reason about, letting the interpreter run a tight <em>fetch–decode–execute</em> loop instead of dealing with high-level language semantics at runtime.</p>
+<p>Interestingly, <em>Java, Kotlin, Scala, Groovy, Clojure</em> - all JVM-based languages compile to <em><strong>the same</strong></em> JVM bytecode; the JVM does not know what language produced any given <em>.class</em> file.</p>
+<p>But what next? From here, the paths diverge — with <em>bytecode</em> remaining the common starting point.</p>
+<h3 id="stage-2a-jit-just-in-time-compilation">Stage #2a: JIT (Just-in-Time) compilation<a class="autolink" aria-label="Link to this heading" href="#stage-2a-jit-just-in-time-compilation">#</a></h3>
+<p>Before talking about <em>Just-In-Time</em> compilation <em>per se</em>, we need to look at how <a href="https://docs.oracle.com/en/java/javase/25/vm/java-virtual-machine-technology-overview.html" rel="noopener noreferrer" target="_blank"><em>HotSpot VM</em></a> as reference impl. of JVM executes <em>bytecode</em> by default.</p>
+<p>To run a Java program, the JDK provides a command-line tool called <code>java</code>. Much like <code>javac</code>, it is a thin <em>OS-level</em> launcher whose sole responsibility is to start the JVM as a <em>native process</em>. While the form of the command is fully <a href="https://docs.oracle.com/en/java/javase/25/docs/specs/man/java.html" rel="noopener noreferrer" target="_blank"><em>documented</em></a>, I just provide my opinionated <em>“baseline”</em> often used in controlled production environments:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>java \</span></span>
+<span class="line"><span>    -Xms&lt;size&gt; \</span></span>
+<span class="line"><span>    -Xmx&lt;size&gt; \</span></span>
+<span class="line"><span>    -XX:[+|-]TieredCompilation \</span></span>
+<span class="line"><span>    -jar &lt;application&gt;.jar,</span></span></code></pre>
+<p>where</p>
+<ul>
+<li><em><code>-Xms</code></em>: (<em>in bytes</em>) sets the initial heap size; avoiding early heap expansion and its associated overhead;</li>
+<li><em><code>-Xmx</code></em>: (<em>in bytes</em>) sets the maximum heap size; the heap will never grow beyond this limit;</li>
+<li><em><strong><code>-XX:[+|-]TieredCompilation</code></strong></em>: enables/disables the use of <em>tiered compilation</em>; enabled by default;</li>
+<li><em><code>-jar &lt;application&gt;.jar</code></em>: instructs the JVM to execute the specified <em>JAR</em> file as an application.</li>
+</ul>
+<p>If not specified, <em>HotSpot VM</em> applies ergonomic <a href="https://docs.oracle.com/en/java/javase/25/gctuning/ergonomics.html" rel="noopener noreferrer" target="_blank"><em>defaults</em></a>:</p>
+<ul>
+<li>the initial heap size is set to <em>1/64</em> of physical memory;</li>
+<li>the maximum heap size is capped at <em>1/4</em> of physical memory;</li>
+<li><em>tiered compiler</em>, using both <em>C1</em> and <em>C2</em> (see below).</li>
+</ul>
+<p>This triggers a sequence of steps that ultimately translate <em>bytecode</em> into instructions understood by the underlying platform and CPU.</p>
+<p>While the JVM specification defines what must be executed, it deliberately avoids specifying how execution is performed.</p>
+<p>In the <em>HotSpot VM</em>, this freedom is realized through an adaptive execution strategy known as <em><strong>“tiered compilation”</strong></em>, which exists purely as an <em>implementation detail</em>.</p>
+<p>I must admit, that <em>tiered compilation</em> is only partially documented: its existence and configuration are official, while the number of tiers, thresholds, and decision logic remain internal implementation details that may change across <em>HotSpot VM</em> versions.</p>
+<p>To stay anchored in reality rather than speculation, the explanation below is grounded in a presentation by <em>Oracle</em> engineer <em>Tobias Hartmann</em>,- arguably the most authoritative public reference on HotSpot’s <em>tiered compilation</em>, see <a href="https://cr.openjdk.org/~thartmann/talks/2017-Compiler-Design-Guest-Talk.pdf" rel="noopener noreferrer" target="_blank"><em>slides</em></a>.</p>
+<p>Below is a minimal sequence of steps that illustrates how execution progresses inside a <em>HotSpot JVM</em> after startup, focusing on how <em>tiered compilation</em> is gradually engaged.</p>
+<ul>
+<li>Operating system starts <em>HotSpot VM</em> as <em>native process</em>;</li>
+<li><em>HotSpot VM</em> inits core runtime subsystems: class loading, interpreter, GC, etc.;</li>
+<li>Entry application class (with <em>main()</em> method) is loaded from the local file system;</li>
+<li>The <em>main()</em> method bytecode starts executing via <em>interpreter</em> instruction-by-instruction (<em><strong>“tier 0”</strong></em>);</li>
+<li>When an instruction references an unknown class, JVM loads it <em>lazily</em> from the file system via a <em>class loader</em>;</li>
+</ul>
+<p>From this point onward, <em>HotSpot VM</em> begins gathering runtime execution data (<em><strong>profiling</strong></em>), and <em>tiered compilation</em> may progressively come into play as methods become <strong>hot</strong>.</p>
+<p>As bytecode continues to execute, the <em>HotSpot VM</em> increments lightweight runtime counters, primarily method-invocation counts and loop backedge counts. These counters serve as signals of <em><strong>hotness</strong></em> and are stored in JVM-internal runtime data structures associated with each method.</p>
+<p>When a method or loop crosses an internal <em>hotness threshold</em>, <em>HotSpot VM</em> creates a compilation request and places it in a compiler queue.
+From this point, JIT compilation is initiated, although execution still continues in the interpreter until compiled code becomes available.
+Just-in-time compilation is typically performed <em>asynchronously</em> by dedicated compiler threads, allowing the app to continue running without blocking.
+The compiler translates the method’s bytecode, using the collected profiling data, into <em>native machine code</em> and installs the result into the <em>code cache</em>.</p>
+<p>In <em>HotSpot VM</em>, this compilation may be performed by a fast, low-optimization compiler (<em>C1</em>, <em><strong>“tier 1-3”</strong></em>) or by a more aggressive optimizing compiler (<em>C2</em>, <em><strong>“tier 4”</strong></em>), depending on runtime heuristics. Intermediate <em>C1</em> tiers allow <em>HotSpot VM</em> to balance fast compilation with progressively richer profiling before committing to expensive <em>C2</em> optimization.</p>
+<p>On subsequent invocations (or loop iterations), execution is redirected from the <em>interpreter</em> to the compiled code in the <em>code cache</em>, significantly improving <em>throughput</em>, because compiled native code runs directly on the CPU without the interpreter’s extra instruction-by-instruction handling.</p>
+<p>Because compiled code is based on <em>speculative assumptions</em> about runtime behavior, <em>HotSpot VM</em> may invalidate and remove affected entries from the <em>code cache</em> when those assumptions no longer hold. Execution then safely resumes in the interpreter via a process known as <em>deoptimization</em>.</p>
+<p>The visualization of this runtime mechanism is present on <em><strong>Fig. 2</strong></em> (present for a case when the link to the <em>Tobias Hartmann</em>
+<a href="https://cr.openjdk.org/~thartmann/talks/2017-Compiler-Design-Guest-Talk.pdf" rel="noopener noreferrer" target="_blank">slides</a> is no longer exists).</p>
+<figure class="m-6 text-center"> <img src="/_astro/hotspot.CgtL7dpZ_Z1caei3.webp" alt="Java just-in-time compilation" loading="lazy" decoding="async" fetchpriority="auto" width="751" height="211"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 2 </strong> <p>The process of turning <em>bytecode</em> (<em>.class</em>) into instructions understood by the underlying platform and CPU inside running <em>HotSpot VM</em>.</p> </figcaption> </figure>
+<p>As is shown, <em>HotSpot’s</em> JIT execution model starts <em>slower</em> to gather runtime profiling data, then accelerates as <em>hot code</em> is compiled, typically reaching <em>peak throughput</em> once code is optimized by <em>C2</em> JIT compiler, with occasional regressions due to <em>deoptimization</em>.</p>
+<p>This behavior reflects a commonly observed property of real programs: execution is <em><strong>highly skewed</strong></em> - a small set of hot methods and loops dominates runtime.
+<em>HotSpot’s</em> tiered compilation mirrors this <em>Pareto</em>-like rule by focusing optimization on hot code, while cold paths remain interpreted or are never loaded into the JVM at all.</p>
+<p>Finally, <em>Oracle</em> designs <em>tiered compilation</em> to be used with its <em>default settings</em> for most workloads. While official documentation explains the mechanism and its rationale, it provides no general <em>performance-tuning guidance</em> despite exposing several related JVM flags. Disabling <em>tiered compilation</em> forces <em>HotSpot VM</em> into a non-tiered execution mode, whose exact behavior is an implementation detail and may vary across JVM versions. For a practice-oriented discussion of edge-case tunings, see this <em>Alibaba Cloud Community</em> <a href="https://www.alibabacloud.com/blog/in-depth-discussion-of-java-tiered-compilation_601664" rel="noopener noreferrer" target="_blank"><em>blog post</em></a>.</p>
+<h3 id="stage-2b-aot-ahead-of-time-compilation">Stage #2b: AOT (Ahead-of-Time) compilation<a class="autolink" aria-label="Link to this heading" href="#stage-2b-aot-ahead-of-time-compilation">#</a></h3>
+<p><em>Ahead-of-time</em> (AOT) compilation follows a fundamentally different — almost <em>orthogonal</em> — idea compared to Just-in-time (JIT).
+Instead of compiling code incrementally at runtime, the goal is to produce a fully native, platform-specific executable ahead of execution, much like traditional C/C++ binaries.</p>
+<p>In this model, everything the program is expected to use at runtime must be known and compiled in advance. This differs from the traditional JVM execution model, which relies on a dynamic runtime and runtime-based optimizations. Thus, AOT compilation has been <em>foreign</em> to the Java platform and is still an area where the ecosystem is actively catching up.</p>
+<p>Historically, most experimental and alternative compilation models in the Java ecosystem have been developed by <a href="https://labs.oracle.com/pls/apex/r/labs/labs/projects" rel="noopener noreferrer" target="_blank"><em>Oracle Labs</em></a> under the <a href="https://labs.oracle.com/pls/apex/f?p=94065:12:115950811344371:47" rel="noopener noreferrer" target="_blank"><em><strong>GraalVM</strong></em></a> umbrella, and currently both open-source <a href="https://www.graalvm.org" rel="noopener noreferrer" target="_blank"><em>GraalVM CE</em></a> (Community Edition) and <a href="https://docs.oracle.com/en/graalvm/jdk/25/index.html" rel="noopener noreferrer" target="_blank"><em>Oracle GraalVM</em></a> commercial enterprise platform co-exists.</p>
+<p>While this experimental platform offers a wide range of capabilities to explore, this chapter focuses first on its <em>Ahead-of-time</em> (AOT) compilation support.</p>
+<p>A GraalVM JDK includes a utility called <a href="https://www.graalvm.org/latest/reference-manual/native-image/basics/" rel="noopener noreferrer" target="_blank"><code>native-image</code></a>, available in the <em>\bin</em> directory of the GraalVM installation. Conceptually, it plays a role similar to <code>java</code> utility: a thin <em>OS-level</em> launcher that starts a JVM — not to run the application, but to analyze, compile, and link it into a native binary for a specific operating system and CPU architecture.</p>
+<p>Full set of arguments and params is listed in the official <em>GraalVM CE</em> <a href="https://www.graalvm.org/latest/reference-manual/native-image/overview/Options/" rel="noopener noreferrer" target="_blank"><em>documentation</em></a>, with the warnings that the available options and defaults may vary across versions. Below I provide my <em>opinionated</em>, generic baseline form for this command:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="plaintext"><code><span class="line"><span>native-image \</span></span>
+<span class="line"><span>    -jar &lt;app-name&gt;.jar \</span></span>
+<span class="line"><span>    -o &lt;app-native-name&gt; \</span></span>
+<span class="line"><span>    -H:MaxHeapSize=&lt;? | 512m&gt; \</span></span>
+<span class="line"><span>    -march=&lt;native | compatibility&gt; \</span></span>
+<span class="line"><span>    --gc=&lt;G1 | serial | epsilon&gt; \</span></span>
+<span class="line"><span>    -O&lt;level&gt;</span></span></code></pre>
+<p>where</p>
+<ul>
+<li><em><code>-jar &lt;app-name&gt;.jar</code></em>: the target bytecode to be native compiled;</li>
+<li><em><code>-o &lt;app-native-name&gt;</code></em>: the resulting name of the native executable;</li>
+<li><em><code>-H:MaxHeapSize=&lt;? | 512m&gt;</code></em>: the max heap size; defaults to <a href="https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/MemoryManagement/" rel="noopener noreferrer" target="_blank">80%</a> of available RAM on the target machine;</li>
+<li><em><code>-march=&lt;native | compatibility&gt;</code></em>: <em>machine architecture</em>; generate instructions for a specific machine type: <em>native</em> for best performance, <em>compatibility</em> for best portability;</li>
+<li><em><code>--gc=&lt;value&gt;</code></em>: select a native image garbage collector impl.; <em>serial</em> is default one, <em>G1</em> is only available in Oracle GraalVM;</li>
+<li><em><code>-O&lt;level&gt;</code></em>: control code optimizations; defaults to <a href="https://www.graalvm.org/latest/reference-manual/native-image/optimizations-and-performance/" rel="noopener noreferrer" target="_blank"><em>2</em></a> - aims for good performance at a reasonable file size.</li>
+</ul>
+<p>As it shown, the tool accepts the Java bytecode per se, as well as a set of flags to tune the level of image optimisation, heap size, GC choice, machine architecture etc.</p>
+<p>This process triggers a sequence of steps that ultimately translate <em>bytecode</em> into a <em>native executable</em>, ready to run directly on the operating system — without requiring a JVM at runtime.</p>
+<p>Let’s walk through them.</p>
+<p>First, the <code>native-image</code> launcher starts a HotSpot JVM, and the entire image-building process runs inside that hosted JVM environment. All work happens there before the final binary is produced.</p>
+<p><em>Christian Wimmer’s</em> <a href="https://graalworkshop.github.io/2022/slides/0_Native_Image_Programming_Model.pdf" rel="noopener noreferrer" target="_blank">presentation</a> outlines the core phases of native image generation:</p>
+<ul>
+<li>Points-to Analysis;</li>
+<li>Run Initializations;</li>
+<li>Heap Snapshotting.</li>
+</ul>
+<p>Let’s briefly look at what each step does.</p>
+<p>The first phase performs whole-program <em>static analysis</em> to determine which classes, methods, and fields are actually reachable from the application’s entry points. It constructs a call graph and object graph, iteratively expanding them until no new reachable elements are discovered (the fixed point). Only reachable code is included in the final image.</p>
+<p>In the second phase, selected classes are initialized at build time rather than at runtime. Their static initializers execute during image generation, which may create objects or trigger additional reachability. This can expand the analysis graph and feed back into the previous step.</p>
+<p>In the last phase, objects created during build-time execution are captured into an <em>image heap</em>. This heap snapshot is serialized into the binary’s <em>.data</em> section. As a result, when the executable starts, it already contains a preconstructed object graph, enabling fast startup.</p>
+<p>He emphasizes that the process is <em>iterative</em>: analysis and initialization repeatedly influence each other. Each cycle may reveal new reachable elements, and the process continues until a fixed point is reached — when no further changes occur.</p>
+<p>In addition to the application code and dependencies, the <code>native-image</code> tool also takes <em><strong>Substrate VM</strong></em> as an input - a lightweight runtime implementation that provides essential services such as memory management, threading, and garbage collection for the native executable. It is analyzed and compiled together with the app code to form the final executable.</p>
+<p>The visualization of this compilation mechanism is present on <em><strong>Fig. 3</strong></em> (present for a case when the link to the <em>Christian Wimmer</em>
+<a href="https://graalworkshop.github.io/2022/slides/0_Native_Image_Programming_Model.pdf" rel="noopener noreferrer" target="_blank">slides</a> is no longer exists).</p>
+<figure class="m-6 text-center"> <img src="/_astro/graal.DCghQDYw_149k42.webp" alt="Java ahead-of-time compilation" loading="lazy" decoding="async" fetchpriority="auto" width="749" height="216"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 3 </strong> <p>The process of turning Java <em>bytecode</em> (<em>.class</em>) into platform-specific native executable.</p> </figcaption> </figure>
+<p>At runtime, <em>Substrate VM</em> executes native machine code in much the same way <em>HotSpot</em> executes native code from the code cache — but the code’s origin, lifetime, and mutability are completely different.</p>
+<p><em>Substrate VM</em> executes ahead-of-time compiled machine code embedded in the binary, whereas <em>HotSpot</em> executes JIT-compiled code stored in its <em>code cache</em>.</p>
+<p>Native executable starts fast (<em>hundreds</em> of ms for cold starts, <em>tens</em> ms for warm starts) because class loading, bytecode verification, JIT initialization, and much of framework bootstrapping are shifted to build time. The executable already contains compiled machine code and a preconstructed heap, so the process begins executing application logic almost instantly.</p>
+<p>Native executable typically has a smaller memory footprint (<em>tens</em> of Mb as RSS (Resident Set Size)) because it eliminates the JVM’s JIT infrastructure, profiling data, and large metadata structures. Only reachable classes and minimal runtime support are included in the binary. As a result, both startup memory and steady-state memory are often significantly lower.</p>
+<p>Horizontal scalability often improves with <em>native images</em> because each instance consumes less memory and has lower runtime overhead, allowing more replicas to run on the same node. Faster startup also improves elasticity and auto-scaling responsiveness. The benefit comes from higher instance density rather than necessarily higher per-instance throughput.</p>
+<p>However, these benefits come with structural trade-offs: AOT relies on a <em>closed-world</em> assumption. All reachable code must be known at build time.
+As a result, <a href="https://www.graalvm.org/latest/reference-manual/native-image/dynamic-features/" rel="noopener noreferrer" target="_blank"><em>dynamic features</em></a> such as unrestricted reflection, runtime class loading, and bytecode generation are either restricted or must be declared explicitly during image generation.</p>
+<p>Overall, AOT compilation shifts complexity from runtime to build time. The result is a lean, predictable executable optimized for fast startup and high deployment density — at the cost of reduced runtime adaptability and dynamic features support.</p>
+<h2 id="conclusion">Conclusion<a class="autolink" aria-label="Link to this heading" href="#conclusion">#</a></h2>
+<p>Having outlined the underlying ideas of both compilation strategies, it’s time to <em><strong>summarize advantages and disadvantages</strong></em> of each one and actually answer main questions that arise when deciding what to adopt in practise.</p>
+<p>The key <em>advantages</em> of JIT compilation:</p>
+<ul>
+<li>Best peak performance;</li>
+<li>Fast iteration during development;</li>
+<li>Full support for runtime features (reflection, classloading, dynamic proxies).</li>
+</ul>
+<p>JIT advantages make it <em>best for</em>:</p>
+<ul>
+<li>Large domain-heavy monolithic applications;</li>
+<li>Long-lived services with stable lifecycles.</li>
+</ul>
+<p>The key <em>advantages</em> of AOT compilation:</p>
+<ul>
+<li>Near-instant cold start;</li>
+<li>Small and predictable memory footprint;</li>
+<li>Stable and consistent throughput from the start (no warm-up phase).</li>
+</ul>
+<p>AOT advantages make it <em>best for</em>:</p>
+<ul>
+<li>Tiny containerized microservices with H-scaling scenarios;</li>
+<li>Serverless functions (pay-per-invocation);</li>
+<li>CLI tools and short-lived utilities.</li>
+</ul>
+<p>But if AOT is so promising, <em><strong>should it be default choice</strong></em>?</p>
+<p>Not necessarily. Most Java workloads are still <em>long-running</em> services where adaptive JIT optimization delivers better sustained throughput and architectural flexibility.
+When considering AOT, its documented trade-offs should be acknowledged. As noted in the <a href="https://bell-sw.com/blog/compilation-in-java-jit-vs-aot/" rel="noopener noreferrer" target="_blank">BellSoft analysis</a>:</p>
+<ul>
+<li><em>Build resources</em>. Native image generation is <em>RAM-</em> and *CPU-*intensive, often requiring several Gb of RAM — a non-trivial cost for CI/CD pipelines.</li>
+<li><em>No optimization</em>. Without a JVM and profiling infrastructure, the executable cannot recompile hot paths at runtime based on real production behavior.</li>
+<li><em>GC choice</em>. Compared to HotSpot’s rich GC landscape, native images currently offer a narrower selection (e.g., <strong>SerialGC</strong> in GraalVM CE, <strong>G1</strong> in EE).</li>
+</ul>
+<p>Another question is <em><strong>why to use Java stack for native</strong></em>, if other platforms designed with AOT in mind?
+Indeed, platforms like <em>Go</em>, <em>Rust</em> were designed with AOT-first in mind and provide even faster compilation, lighter-weight binaries and memory footprint.
+However, Java AOT allows teams already in the JVM ecosystem to meet deployment constraints (cold start, memory limits) without abandoning language familiarity, tooling, libraries, architectural investment. The choice is therefore not about performance absolutism, but about ecosystem continuity.</p>
+<p>To sum up, Java’s real strength is not JIT or AOT in isolation, but the ability to choose between them <em>without changing the language or ecosystem</em>. The same Java codebase can run on a dynamically optimizing JVM or be compiled ahead-of-time into a native executable, depending on deployment constraints.</p>
+<p>Only a small number of modern platforms (notably Java and .NET) offer this level of execution-model flexibility within a single, mature ecosystem — and that <em>optionality</em> is what makes the Java stack uniquely adaptable across radically different workloads.</p>
+<h2 id="references">References<a class="autolink" aria-label="Link to this heading" href="#references">#</a></h2>
+<ul>
+<li><a href="https://docs.oracle.com/javase/specs/jls/se25/html/index.html" rel="noopener noreferrer" target="_blank">Java Language Specification</a></li>
+<li><a href="https://docs.oracle.com/javase/specs/jvms/se25/html/" rel="noopener noreferrer" target="_blank">Java Virtual Machine Specification</a></li>
+<li><a href="https://openjdk.org/groups/compiler/doc/compilation-overview/index.html" rel="noopener noreferrer" target="_blank">Compilation overview</a></li>
+<li><a href="https://cr.openjdk.org/~thartmann/talks/2017-Compiler-Design-Guest-Talk.pdf" rel="noopener noreferrer" target="_blank">Tobias Hartman’s presentation</a></li>
+<li><a href="https://graalworkshop.github.io/2022/slides/0_Native_Image_Programming_Model.pdf" rel="noopener noreferrer" target="_blank">Christian Wimmer’s presentation</a></li>
+</ul>  </div> </article> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <nav aria-label="Previous and next articles" class="grid grid-cols-2 gap-5"><div class="flex flex-col items-start gap-3
+                p-2
+                text-sm
+                bg-transparent
+                border border-zinc-500
+                rounded-sm"><p class="font-normal text-zinc-600 dark:text-zinc-300">Previous</p><a href="/posts/rabbitmq-vs-artemis-omb/" class="
+                inline-flex items-center gap-2
+                font-semibold
+                text-neutral-600 dark:text-prnd-neon hover:scale-101 active:scale-99"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="shrink-0 w-4 h-4 text-neutral-600 dark:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"></path><path d="m11 18 1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"></path></svg><span>RabbitMQ vs ActiveMQ Artemis benchmark</span></a></div></nav> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <aside id="about-author" class="mt-0 pt-6"> <section> <div class="flex gap-4 rounded-2xl bg-zinc-100/70 dark:bg-neutral-800/60 px-4 py-4 sm:px-5 sm:py-5"> <div class="shrink-0"> <img src="/_astro/avatar.h0uefq9r_Z1i5gFo.webp" alt="Andrii Popov" loading="lazy" decoding="async" fetchpriority="auto" width="259" height="259" class="h-12 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600"> </div> <div class="space-y-2 text-sm leading-relaxed"> <h2 class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+About the author
+</h2> <p class="font-medium text-neutral-900 dark:text-neutral-50">
+Andrii Popov · Popov R&amp;D — Independent Engineering Lab
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+Independent software engineer focused on JVM-based production systems, the Spring ecosystem, and modern front-end delivery. I run independent experiments and publish architectural analysis — benchmarks, performance knees, and trade-offs — about what actually works in practice.
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+If you’d like to collaborate, feel free to reach out on LinkedIn.
+</p> <ul class="flex flex-wrap gap-3 pt-1 text-xs"> <li> <a href="https://popov-rnd.com" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-cyan-600 dark:text-cyan-200 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48C141.13 48 48 141.13 48 256s93.13 208 208 208 208-93.13 208-208S370.87 48 256 48z"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48c-58.07 0-112.67 93.13-112.67 208S197.93 464 256 464s112.67-93.13 112.67-208S314.07 48 256 48z"></path><path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M117.33 117.33c38.24 27.15 86.38 43.34 138.67 43.34s100.43-16.19 138.67-43.34m0 277.34c-38.24-27.15-86.38-43.34-138.67-43.34s-100.43 16.19-138.67 43.34"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48v416m208-208H48"></path></svg> <span>Website</span> </a> </li> <li> <a href="https://www.linkedin.com/in/Popov85/" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg> <span>LinkedIn</span> </a> </li> <li> <a href="https://github.com/Popov85" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg> <span>GitHub</span> </a> </li> </ul> </div> </div> </section> </aside> </main> <script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><astro-island uid="Z2fQQ55" prefix="r11" component-url="/_astro/ScrollToTopButton.P8reXH2a.js" component-export="ScrollToTopButton" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;ScrollToTopButton&quot;,&quot;value&quot;:true}" await-children><button aria-label="Scroll to top" class="
+                fixed bottom-6 right-6 z-[999]
+                flex items-center justify-center
+                w-12 h-12 rounded-full
+                bg-neutral-700 dark:bg-neutral-200
+                text-neutral-200 dark:text-neutral-700
+                shadow-lg shadow-black/25
+                transition-all duration-300
+                active:scale-95
+                lg:hidden
+                opacity-0 pointer-events-none
+              "><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="text-2xl active:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M256 217.9L383 345c9.4 9.4 24.6 9.4 33.9 0 9.4-9.4 9.3-24.6 0-34L273 167c-9.1-9.1-23.7-9.3-33.1-.7L95 310.9c-4.7 4.7-7 10.9-7 17s2.3 12.3 7 17c9.4 9.4 24.6 9.4 33.9 0l127.1-127z"></path></svg></button><!--astro:end--></astro-island> <footer class="mt-auto">  <hr class="mx-auto my-8 border-t border-neutral-300 dark:border-neutral-400 max-w-lg"> <div class="text-xs text-neutral-500 dark:text-neutral-300 flex flex-col justify-center items-center gap-1 pb-6"> <div><span>© 2026 Popov R&amp;D</span></div> <div>All rights reserved.</div> </div> </footer> </body></html>
