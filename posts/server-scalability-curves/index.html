@@ -1,0 +1,346 @@
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico?v=1" sizes="any"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Popov R&#38;D Blog" href="https://blog.popov-rnd.com/rss.xml"><meta name="generator" content="Astro v5.15.1"><!-- Canonical URL --><link rel="canonical" href="https://blog.popov-rnd.com/posts/server-scalability-curves/"><!-- Primary Meta Tags --><title>Server scalability curves: a method of systems performance analysis</title><meta name="title" content="Server scalability curves: a method of systems performance analysis"><meta name="description" content="About one practical method to assess and reason about a server performance under load"><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://blog.popov-rnd.com/posts/server-scalability-curves/"><meta property="og:title" content="Server scalability curves: a method of systems performance analysis"><meta property="og:description" content="About one practical method to assess and reason about a server performance under load"><meta property="og:site_name" content="Popov R&D Blog"><meta property="og:image" content="https://blog.popov-rnd.com/_astro/cover.3Q4ZccIL.webp"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.popov-rnd.com/posts/server-scalability-curves/"><meta property="twitter:title" content="Server scalability curves: a method of systems performance analysis"><meta property="twitter:description" content="About one practical method to assess and reason about a server performance under load"><meta property="twitter:image" content="https://blog.popov-rnd.com/_astro/cover.3Q4ZccIL.webp"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","url":"https://blog.popov-rnd.com","name":"Popov R&D Tech Blog","publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Server scalability curves: a method of systems performance analysis","description":"About one practical method to assess and reason about a server performance under load","image":"https://blog.popov-rnd.com/_astro/cover.3Q4ZccIL.webp","datePublished":"2026-03-20T00:00:00.000Z","dateModified":"2026-03-20T00:00:00.000Z","author":{"@type":"Person","name":"Andrii Popov","url":"https://popov-rnd.com/#about-me"},"publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.popov-rnd.com/posts/server-scalability-curves/"}}</script><link rel="stylesheet" href="/_astro/_slug_.Dce5XBvQ.css"></head> <body class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"> <header class="fixed top-0 left-0 w-full h-[65px]
+         bg-gray-50 dark:bg-neutral-800
+         font-default text-neutral-800 dark:text-neutral-50 font-medium
+         flex items-center justify-between
+         px-[1%] gap-x-[1vw] z-50 shadow-md"> <a href="/" class="flex items-center justify-center space-x-3 no-underline"> <img src="/_astro/logo.WyeL1E5S.svg" alt="Popov R&D logo" class="shrink-0 w-[45px] h-[45px] opacity-80"> <div class="flex flex-col space-y-0 text-neutral-800  dark:text-neutral-50"> <span class="text-base font-normal">POPOV R&amp;D</span> <span class="text-xs font-normal">tech blog</span> </div> </a> <!-- Desktop / Tablet --><div class="hidden md:flex items-center gap-x-[1vw]"> <nav class="flex-1 flex items-center justify-end gap-x-3 lg:gap-x-5 shrink"> <a href="/" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> Home  </span> </a> <a href="/posts" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400 font-bold"> <span class="relative inline-block"> Posts <span class="absolute left-0 -bottom-1 h-0.5 w-full bg-lime-400"></span> </span> </a> <a href="/about" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> About  </span> </a> <a href="/search" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block">  <div aria-label="Search" class="text-lg hover:text-lime-300 transition-colors"> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener("change",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event("astro:media"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="2fl2QU" prefix="r20" component-url="/_astro/SearchIcon.DS4bxQ8F.js" component-export="SearchIcon" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="media" opts="{&quot;name&quot;:&quot;SearchIcon&quot;,&quot;value&quot;:&quot;(min-width: 768px)&quot;}" await-children><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg><!--astro:end--></astro-island> </div>   </span> </a> <script>
+    const theme = (() => {
+        const stored = localStorage?.getItem("theme") ?? '';
+        if (["dark", "light"].includes(stored)) return stored;
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
+    })();
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+
+    const toggleTheme = () => {
+        const el = document.documentElement;
+        const isDark = el.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        // update knob visibility
+        const lightKnob = document.getElementById("lightKnob");
+        const darkKnob = document.getElementById("darkKnob");
+        if (lightKnob && darkKnob) {
+            lightKnob.style.opacity = isDark ? "0" : "1";
+            darkKnob.style.opacity = isDark ? "1" : "0";
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("themeButton")?.addEventListener("click", toggleTheme);
+    });
+</script> <button id="themeButton" type="button" class="relative inline-flex h-8 w-20 items-center rounded-full
+	        bg-[#C1FF72]/35 dark:bg-white/10 ring-1 ring-black/5 dark:ring-white/10
+	        shadow-sm transition-colors duration-200 focus:outline-none
+	        focus-visible:ring-2 focus-visible:ring-[#C1FF72]
+	        focus-visible:ring-offset-2 focus-visible:ring-offset-white
+	        dark:focus-visible:ring-offset-neutral-900"> <!-- Light knob --> <span id="lightKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 left-1 opacity-100">
+Light
+</span> <!-- Dark knob --> <span id="darkKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 right-1 opacity-0">
+Dark
+</span> </button> </nav> </div> <!-- Mobile / Hamburger --> <div class="md:hidden"> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="grfut" prefix="r19" component-url="/_astro/MenuGroupMobile.BhdERKXX.js" component-export="MenuGroupMobile" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;MenuGroupMobile&quot;,&quot;value&quot;:true}" await-children><button type="button" aria-label="Open menu" class="
+                inline-flex h-11 w-11 items-center justify-center
+                rounded-lg focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-prnd-accent focus-visible:ring-offset-2"><span class="relative block h-5 w-7"><span class="absolute left-0 top-0 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span><span class="absolute left-0 top-2.5 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-opacity duration-300 opacity-100"></span><span class="absolute right-0 top-5 block h-0.5 w-5 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span></span></button><div class="
+                fixed top-[65px] right-0
+                h-[calc(100vh-65px)] w-full overflow-y-auto
+                bg-gray-50 dark:bg-neutral-900 z-600
+                transform transition-transform duration-450 ease-in-out
+                translate-x-full"><nav class="flex flex-col divide-y divide-neutral-700"><a href="/" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Home</a><a href="/posts" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Posts</a><a href="/about" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">About</a><a href="/search" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Search</a></nav></div><!--astro:end--></astro-island> </div> </header> <main class="pt-[65px] w-full max-w-3xl mx-auto px-4 sm:px-8 lg:px-0 py-6 font-article"> <nav aria-label="Back to posts" class="text-left py-6"> <a href="/posts" class="
+                inline-flex items-center justify-center
+                px-2 py-1
+                bg-transparent
+                border
+                rounded-xl
+                text-sm
+                font-semibold
+                text-neutral-600 dark:text-neutral-200
+                hover:border-none hover:rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-50  hover:text-prnd-neon dark:hover:text-neutral-700
+                active:rounded-xl active:bg-neutral-800 dark:active:bg-neutral-50  active:text-neutral-50 dark:active:text-neutral-800
+                focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-110 active:scale-95
+                transition-all duration-500 ease-in-out"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 4.293a1 1 0 010 1.414L6.414 9H16a1 1 0 110 2H6.414l3.293 3.293a1 1 0 11-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg><span>Back</span></a> </nav> <article class="flex flex-col items-start"> <div class="flex flex-wrap items-start justify-start gap-x-5 gap-y-2 text-xs md:text-sm text-neutral-500 dark:text-neutral-300 mb-8"> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <time datetime="2026-03-20T00:00:00.000Z"> Mar 20, 2026 </time> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg> 10 min read
+</span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"></path></svg> <span class="inline-flex items-center gap-1"> <span class="inline-flex items-center"> <a href="/tags/performance" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> performance </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/engineering" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> engineering </a>  </span> </span> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> <a href="#about-author" class="italic hover:underline active:underline underline-offset-4">by Andrii Popov</a> </span> </div> <!--I do not display image by default!-->  <div class="w-full text-left"> <h1 class="text-3xl font-medium leading-8 tracking-normal mb-6">Server scalability curves: a method of systems performance analysis</h1> <p class="text-base/6 sm:text-lg/7 font-normal italic tracking-normal dark:text-neutral-200">
+"About one practical method to assess and reason about a server performance under load"</p> <hr class="h-px border-0 mt-6 mb-4 w-full bg-gradient-to-r from-neutral-500 to-transparent"> </div> <!-- Pagefind enhancements --> <div class="hidden" data-pagefind-meta="title"> Server scalability curves: a method of systems performance analysis </div> <div class="hidden" data-pagefind-meta="description"> About one practical method to assess and reason about a server performance under load </div> <div class="hidden" data-pagefind-meta="tags"> performance, engineering </div> <!-- ⭐ Add image to Pagefind metadata --> <div class="hidden" data-pagefind-meta="image"> /_astro/cover.3Q4ZccIL.webp </div> <div class="markdown-content w-full" data-pagefind-body>  <p>Recently, I needed to analyse how several backend architectures behave under load when running on the same hardware.</p>
+<p>The objective was to understand their maximal throughput, optimal concurrency levels, and performance at high load and during overload.</p>
+<p>During my preliminary research in <a href="https://en.wikipedia.org/wiki/Performance_engineering" rel="noopener noreferrer" target="_blank"><em>performance engineering</em></a>, I discovered the concept of <em><strong>server scalability curves</strong></em> - a practical method for analysing and visualising system dynamics as load increases.</p>
+<p>While the term itself is not <em>canonical</em> in the dedicated literature, it describes the idea very clearly.</p>
+<p>I first encountered it in a <a href="https://blogs.oracle.com/timesten/server-scalability-curves-a-missing-law-of-computing" rel="noopener noreferrer" target="_blank">blog post</a> by Doug Hood (Oracle blog, 2025) titled <em>“Server Scalability Curves – a Missing Law of Computing”</em> (link at the bottom).</p>
+<p>Below I summarise the essence of this method as a controlled approach for analysing system capacity under fixed conditions, and outline how these insights can be used for systems comparison and production tuning.</p>
+<h2 id="the-problem-simplified-benchmarks-are-misleading">The problem: simplified benchmarks are misleading<a class="autolink" aria-label="Link to this heading" href="#the-problem-simplified-benchmarks-are-misleading">#</a></h2>
+<p>In practice, evaluating system performance under load is not straightforward.</p>
+<p>Most engineers rely on <em>benchmarking</em>, yet many benchmark articles across the Internet follow a simplified pattern and present results in one of 2 misleading ways.</p>
+<h3 id="approach-1">Approach #1<a class="autolink" aria-label="Link to this heading" href="#approach-1">#</a></h3>
+<p>Many benchmarks report results in the form: <em>“System X processed 1 million requests in N seconds.”</em></p>
+<p>From this, throughput is derived by simply dividing the number of completed requests by the total execution time.</p>
+<p>While this produces a clean number, it hides the actual load conditions during the test.</p>
+<p>The benchmark doesn’t show how many concurrent clients were used (and even if reported, whether that number was <em>optimal</em>?), how close the system was to its limits, or how response times changed during execution.</p>
+<p>At a given concurrency level, one system may already be near saturation while another is still in its linear scaling region, which can <em>distort comparisons</em> between them.</p>
+<p>Instead, I would want to see the <em>“full picture”</em> and compare <em>maximal possible throughput</em> of 2 or more systems being evaluated.</p>
+<h3 id="approach-2">Approach #2<a class="autolink" aria-label="Link to this heading" href="#approach-2">#</a></h3>
+<p>Another common approach is to gradually increase the offered load against a target system until a latency constraint is violated, for example stopping the test once <strong>p95</strong> or <strong>p99</strong> latency exceeds a defined <a href="https://en.wikipedia.org/wiki/Service-level_objective" rel="noopener noreferrer" target="_blank"><em>SLO (Service Level Objective)</em></a>, such as N ms.</p>
+<p>This method is more realistic because it focuses on service quality rather than reporting a single raw throughput number.</p>
+<p>By doing so, we can report the <em>sustainable throughput</em> that the system can process while meeting the latency objective.</p>
+<p>However, this approach often starts from an <em>arbitrary</em> load level. So the system’s true capacity remains <em>unknown</em>.</p>
+<p>It also doesn’t show how throughput evolves across concurrency levels, making it hard to reason about or tune internal params such as thread and connection pools.</p>
+<p>Ideally, I’d also want to know the optimal concurrency level so upstream services can size these resources to align with downstream capacity.</p>
+<h2 id="server-scalability-curves">Server Scalability Curves<a class="autolink" aria-label="Link to this heading" href="#server-scalability-curves">#</a></h2>
+<p>To better understand how a system behaves under load, we need to observe it at a more <em>fundamental level</em>, eventually introducing such terms as <em>system capacity</em> (maximum throughput) and <em>optimal concurrency</em>.</p>
+<p>Instead of relying on isolated benchmark numbers, we should examine how key metrics evolve as pressure on the system increases.</p>
+<p>As Srinath Perera <a href="https://medium.com/@srinathperera/how-do-we-measure-the-performance-of-a-microservice-service-or-server-450c562854a7" rel="noopener noreferrer" target="_blank">highlights</a>:</p>
+<blockquote>
+<p>Performance is a dynamic measurement, unlike static server capacity measurements (e.g., CPU processing speed, memory size). Latency and throughput are strongly influenced by concurrency and work unit size.</p>
+</blockquote>
+<p>This is where <em>server scalability curves</em> become useful as they allow us to visualize how throughput, latency and concurrency relate to each other as load grows.</p>
+<p>Before proceeding, let me provide the definitions to the <em>key concepts</em> used throughout this article:</p>
+<ul>
+<li><em><strong>Throughput</strong></em>: the number of requests processed per unit of time, typically measured in requests per second (RPS).</li>
+<li><em><strong>Latency</strong></em>: the time required to complete a request, usually measured in milliseconds and often reported using percentiles such as p50 or p99 (meaning 99% of requests complete faster than that value).</li>
+<li><em><strong>Concurrency</strong></em>: the number of requests being processed by the server simultaneously.</li>
+</ul>
+<h2 id="universal-shape-pattern">Universal shape pattern<a class="autolink" aria-label="Link to this heading" href="#universal-shape-pattern">#</a></h2>
+<p>In practice, most server systems - regardless of the technology stack, whether implemented in <em>Java, Go, Node.js, Python</em> or others - exhibit a recognizable <em>performance pattern</em> as load increases.</p>
+<p>As Doug Hood <a href="https://blogs.oracle.com/timesten/server-scalability-curves-a-missing-law-of-computing" rel="noopener noreferrer" target="_blank"><em>observes</em></a>:</p>
+<blockquote>
+<p>“In over 30 years of computing, I have never seen a server system that does not fit within the model of Server Scalability Curves.”</p>
+</blockquote>
+<p>When throughput and latency are plotted against concurrency, this behavior typically forms <em>characteristic curves</em>.</p>
+<p>As concurrency grows, the system typically passes through several distinct regions (zones), each corresponding to a different operating regime (see <strong>Fig.</strong> 1-2).</p>
+<ul>
+<li><em>Linear region</em>: throughput grows almost linearly while latency stays stable, up to the <em>“knee”</em> (see below), where gains begin to slow and latency starts to rise;</li>
+<li><em>Saturation region</em>: throughput stops increasing, and additional load mainly results in queuing and higher latency;</li>
+<li><em>Degradation region</em>: under further pressure, throughput may decline while latency increases sharply.</li>
+</ul>
+<figure class="m-6 text-center"> <img src="/_astro/curve_1.Cy7I5y8t_2i22SH.webp" alt="Throughput-versus-concurrency curve" loading="lazy" decoding="async" fetchpriority="auto" width="456" height="291"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1 </strong> <p>Throughput-versus-concurrency curve.</p> </figcaption> </figure>
+<figure class="m-6 text-center"> <img src="/_astro/curve_2.D8wyq6fM_Z1GEP0U.webp" alt="Latency-versus-concurrency curve" loading="lazy" decoding="async" fetchpriority="auto" width="461" height="290"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 2 </strong> <p>Latency-versus-concurrency curve.</p> </figcaption> </figure>
+<p>Understanding these regions is important because they reveal not only the maximum throughput the system can achieve, but also the range in which it operates efficiently.</p>
+<p>As a matter of fact, the real-world servers rarely produce identical curves.</p>
+<p>As <em>Doug Hood</em> <a href="https://blogs.oracle.com/timesten/server-scalability-curves-a-missing-law-of-computing" rel="noopener noreferrer" target="_blank">notes</a>, systems may differ in several important ways (given a fixed workload and fixed hardware/software configuration):</p>
+<ul>
+<li>How close they come to linear scalability under light load;</li>
+<li>How far that linear region extends (how <em>scalable</em> it is);</li>
+<li>How long throughput remains stable under heavy load;</li>
+<li>How rapidly performance degrades once the system becomes overloaded.</li>
+</ul>
+<h2 id="method-to-draw-the-curves">Method to draw the curves<a class="autolink" aria-label="Link to this heading" href="#method-to-draw-the-curves">#</a></h2>
+<p>To produce a server scalability curve, the system must be tested under a specific workload and hardware configuration.</p>
+<p>Each setup produces its own curve; even small changes (e.g. thread pools, memory, framework version) can shift it.</p>
+<p>The experiment begins by gradually increasing the load applied to the server. This is done by increasing the number of concurrent requests or connections to the system, using one of the load generators of choice: <em>Grafana k6, Gatling, Bombardier</em>, etc.</p>
+<p><em>Doug Hood</em> <a href="https://blogs.oracle.com/timesten/server-scalability-curves-a-missing-law-of-computing" rel="noopener noreferrer" target="_blank">suggests</a> to vary concurrency in powers of 2 (for example 1, 2, 4, 8, 16, 32, 64, and so on). This allows the system behaviour to be explored quickly across a wide range of load levels.</p>
+<p>At each step, the system is exercised <em>“long enough”</em> to measure throughput and latency. There is no universal fixed duration. The test simply needs to process a sufficiently large number of requests so that latency percentiles, especially <em>p99</em>, become <em>statistically meaningful</em>.</p>
+<p>As concurrency increases, throughput initially grows almost linearly.</p>
+<p>Eventually a point is reached where throughput stops increasing significantly.</p>
+<p>This indicates that the system is approaching its <em>capacity</em> — the <em>maximum throughput</em> the system can sustain.</p>
+<p>To determine this transition more precisely, additional measurements can be taken between the last linear point and the saturation region.</p>
+<p>A <a href="https://en.wikipedia.org/wiki/Binary_search" rel="noopener noreferrer" target="_blank"><em>binary search</em></a> strategy can then be used to narrow down the transition point by repeatedly testing the midpoint between 2 previously measured load levels.</p>
+<p>Once the start of the heavy-load region is identified, concurrency can be increased further until throughput begins to decrease. This marks the onset of the <em>degradation region</em>.</p>
+<p>At this stage latency typically grows very rapidly due to <em>queueing effects</em> (see below), so testing deep into this region is rarely necessary.</p>
+<p>Finally, the collected measurements are plotted to produce <em>throughput-versus-concurrency</em> and <em>latency-versus-concurrency</em> curves.</p>
+<p>These curves reveal the characteristic regions discussed earlier and allow the system’s capacity and optimal operating range to be identified.</p>
+<p>Thus, the goal of the experiment is to figure out where these regions begin and end.</p>
+<h2 id="why-scalability-curves-appear">Why scalability curves appear<a class="autolink" aria-label="Link to this heading" href="#why-scalability-curves-appear">#</a></h2>
+<p>The characteristic shape of scalability curves is not accidental. It reflects how servers process work under limited resources.</p>
+<p>Every system has finite capacity: CPU, RAM, network, and internal concurrency limits. Each request consumes some <em>service time</em>.</p>
+<p>When the arrival rate is below this capacity, requests are processed immediately. Throughput grows almost linearly, and latency remains stable.</p>
+<p>As load increases, the system approaches its limits. Requests begin to wait for resources such as CPU time, threads, or connection pools.</p>
+<p>At full utilization, throughput stops increasing — the system is already working at maximum capacity. From this point onward, additional load only creates <em>queues</em>. These queues may form at different layers: network (socket level), application (thread scheduling), or downstream systems (database connection pools).</p>
+<p>As queues grow, latency rises rapidly while throughput remains flat (plateaus) or may even decline.</p>
+<p>This behavior subordinates directly to the <a href="https://en.wikipedia.org/wiki/Little%27s_law" rel="noopener noreferrer" target="_blank"><strong>Little’s Law</strong></a>, a fundamental result from <a href="https://en.wikipedia.org/wiki/Queueing_theory" rel="noopener noreferrer" target="_blank"><em>queueing theory</em></a>:</p>
+<blockquote>
+<p>Concurrency (N) = Throughput (X) × Latency (R)</p>
+</blockquote>
+<p><em>Little’s Law</em> itself doesn’t describe saturation (plateau), but it implies that once throughput (X) stops increasing while concurrency (N) continues to grow, response time (R) must increase accordingly.</p>
+<p>Saturation itself is determined by the fundamental physical limits and discussed in such canonical performance engineering books as Raj Jain’s <a href="https://www.amazon.com/Art-Computer-Systems-Performance-Analysis/dp/0471503363" rel="noopener noreferrer" target="_blank"><em>The Art of Computer Systems Performance Analysis</em></a> and Neil Gunther’s <a href="https://www.amazon.com/Guerrilla-Capacity-Planning-Tactical-Applications/dp/3540261389" rel="noopener noreferrer" target="_blank"><em>Guerrilla Capacity Planning</em></a>. The latter provides mathematical tools to model and quantify system’s scalability (<a href="https://www.perfdynamics.com/Manifesto/USLscalability.html" rel="noopener noreferrer" target="_blank"><em><strong>Universal Scalability Law</strong></em></a>) and definitely deserves a separate blog post article to overview!</p>
+<p>Thus, the scalability curves don’t <em>“invent”</em> this systems behaviour; they simply expose what is already dictated by underlying physics.</p>
+<h2 id="key-metrics-and-interpretations-of-the-curves">Key metrics and interpretations of the curves<a class="autolink" aria-label="Link to this heading" href="#key-metrics-and-interpretations-of-the-curves">#</a></h2>
+<h3 id="key-metrics">Key metrics<a class="autolink" aria-label="Link to this heading" href="#key-metrics">#</a></h3>
+<p>Once a scalability curve is constructed, several <em><strong>key metrics</strong></em> can be derived:</p>
+<ul>
+<li>
+<p><em><strong>Capacity</strong></em> (X<sub>max</sub>): the maximum throughput. On the curve, this corresponds to the “plateau” where throughput no longer increases. In practice, systems rarely operate here; instead, the <em>“knee”</em> throughput (X<sub>knee</sub>) is used as a more realistic baseline.</p>
+</li>
+<li>
+<p><em><strong>Knee</strong></em>: the point where adding more load no longer increases throughput much, but latency starts growing quickly. It marks the moment when the system begins to <em>queue</em> requests. (see Raj Jain book, p. 35).</p>
+</li>
+<li>
+<p><em><strong>Optimal concurrency</strong></em> (N<sub>optimal</sub>): the concurrency level near the <em>“knee”</em>, where throughput is high and latency remains stable.</p>
+</li>
+</ul>
+<p>As noted earlier, these metrics should be interpreted <em>relative to</em> the specific workload and system configuration.</p>
+<h3 id="key-applications">Key applications<a class="autolink" aria-label="Link to this heading" href="#key-applications">#</a></h3>
+<p>Below are several practical purposes of the curves, <a href="https://blogs.oracle.com/timesten/server-scalability-curves-a-missing-law-of-computing" rel="noopener noreferrer" target="_blank">discussed</a> by Doug Hood:</p>
+<ul>
+<li>
+<p>First, it allows engineers to determine the <em>maximum throughput</em> a system can achieve while maintaining acceptable latency. This helps identify a safe operating point for the system.</p>
+</li>
+<li>
+<p>Second, scalability curves help estimate the infrastructure required to support a desired workload. If the expected load exceeds the capacity of a single server, the curve can be used to estimate how many instances may be needed when scaling horizontally.</p>
+</li>
+<li>
+<p>Finally, scalability curves provide a useful baseline when comparing different system configurations. For example, they can be used to evaluate new hardware, different server implementations, or updated software versions under the same workload.</p>
+</li>
+</ul>
+<p>Thus, having a scalability curve for a given server, hardware, and workload makes it possible to reason about system capacity and scalability in a <em>structured way</em>.</p>
+<h3 id="how-to-interpret">How to interpret?<a class="autolink" aria-label="Link to this heading" href="#how-to-interpret">#</a></h3>
+<p>When analysing <em>server scalability curves</em>, several interpretations are particularly important:</p>
+<ul>
+<li>A higher <em>“plateau”</em> indicates greater maximum throughput (X<sub>max</sub>);</li>
+<li>A later <em>“knee”</em> indicates that the system maintains <em>near-linear scaling</em> over a wider concurrency range;</li>
+<li>A flatter latency curve before the <em>“knee”</em> reflects more stable response times under load;</li>
+<li>A wider <em>“plateau”</em> region shows the system can sustain high throughput over a broader concurrency range;</li>
+<li>A sharper drop after saturation indicates weaker overload resilience.</li>
+</ul>
+<p>Taken together, these characteristics describe not only how fast a system can operate, but also how predictably it behaves as it approaches its limits.
+Systems with a later <em>“knee”</em> and smoother degradation generally remain more stable under real-world load conditions.</p>
+<h2 id="closed-and-open-workload-models-in-performance-testing">Closed and open workload models in performance testing<a class="autolink" aria-label="Link to this heading" href="#closed-and-open-workload-models-in-performance-testing">#</a></h2>
+<h3 id="closed-workload-model">Closed workload model<a class="autolink" aria-label="Link to this heading" href="#closed-workload-model">#</a></h3>
+<p><em>Server scalability curves</em> are typically obtained using so-called <em>closed workload model</em>.</p>
+<p>In this model the number of concurrent clients is <strong>fixed</strong>, and each client sends a new request only after the previous one completes. As a result, the load applied to the system is controlled directly through the <em>level of concurrency</em>.</p>
+<p>However, this model has an important limitation. Because new requests are only issued after previous ones complete, the system’s response time directly influences the rate at which new requests are generated.</p>
+<p>If the server becomes slow under load, clients simply wait longer before sending the next request. As a result, the arrival rate of new requests decreases automatically. In <em>Grafana Labs</em> documentation this effect is described as <a href="https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/#drawbacks-of-using-the-closed-model" rel="noopener noreferrer" target="_blank"><em>coordinated omission</em></a>.</p>
+<h3 id="open-workload-model">Open workload model<a class="autolink" aria-label="Link to this heading" href="#open-workload-model">#</a></h3>
+<p>In many real-world systems, new requests continue to arrive even if previous ones have not completed.</p>
+<p>This corresponds to an <em>open workload model</em>, where requests are driven by an <em>arrival rate</em> rather than a fixed number of concurrent clients.</p>
+<p>Open models are therefore often considered more representative of real production traffic, especially for public services exposed to unpredictable user demand.</p>
+<p><strong>Both models are useful</strong>: closed models are well suited for analysing scalability behaviour, while open models are better for evaluating how systems behave under realistic traffic conditions.</p>
+<h3 id="open-vs-closed-model">Open vs closed model<a class="autolink" aria-label="Link to this heading" href="#open-vs-closed-model">#</a></h3>
+<p>It should be noted that systems which appear to perform well under closed workload models may exhibit <em>much worse behavior</em> under open workload conditions.</p>
+<p>In closed models, increasing latency reduces throughput automatically, which softens the visible effects of saturation. In contrast, open models continue to apply pressure, exposing queueing and latency collapse much more clearly.</p>
+<p>Therefore, scalability curves derived from closed models should be interpreted as an <em>upper bound</em> of system capability rather than a directly sustainable production load.</p>
+<h3 id="modern-tooling">Modern tooling<a class="autolink" aria-label="Link to this heading" href="#modern-tooling">#</a></h3>
+<p>Modern load-testing tools such as <a href="https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/" rel="noopener noreferrer" target="_blank"><em>k6</em></a> and <a href="https://docs.gatling.io/testing-concepts/workload-models/" rel="noopener noreferrer" target="_blank"><em>Gatling</em></a> typically support both workload models through the concept of <em>“virtual users”</em>.</p>
+<p>A <strong>“Virtual user (VU)”</strong> represents an independent client that repeatedly sends requests to the server.</p>
+<p>In a closed workload model, the number of VUs is fixed. Each VU sends a new request only after the previous one has completed, which means the system load is limited by the number of concurrent users.</p>
+<p>In an open workload model, requests are generated at a target arrival rate (for example a fixed number of requests per second). To maintain this rate, the load-testing tool dynamically creates additional VUs whenever existing ones become blocked or slow.</p>
+<p>This allows engineers to test systems under controlled concurrency or under fixed arrival-rate workloads that more closely resemble real production traffic.</p>
+<h2 id="two-step-performance-analysis-approach">Two-step performance analysis approach<a class="autolink" aria-label="Link to this heading" href="#two-step-performance-analysis-approach">#</a></h2>
+<p>Having discussed the limitations of existing benchmarking approaches and introduced the concept of <em>Server Scalability Curves</em>, we can outline a practical <em>performance analysis procedure</em>.</p>
+<p>Given that the hardware environment and system configuration are fixed, system evaluation can be performed as a <em><strong>two-step process</strong></em>:</p>
+<ol>
+<li><em>Measure and draw the server scalability curves</em>*. Their shape immediately reveals the key properties of the target setup:
+<ul>
+<li><em>Maximum throughput</em> (X<sub>max</sub>),</li>
+<li><em>Knee throughput</em>(X<sub>knee</sub>),</li>
+<li><em>Optimal concurrency</em> (N<sub>optimal</sub>).</li>
+</ul>
+</li>
+</ol>
+<p>This provides 2 important insights: <em>“what load level the system can potentially sustain”</em> and <em>“how to size internal thread and connection pools”</em>.</p>
+<p>The latter is particularly useful for capacity alignment between services: upstream connection pools shouldn’t exceed the downstream system’s optimal concurrency (N<sub>optimal</sub>), otherwise excess load only translates into queueing and latency amplification.</p>
+<ol start="2">
+<li><em>Test the system under a more realistic production scenario</em> using an <em>open workload model</em>, operating roughly in the range of 0.5X<sub>max</sub> to X<sub>max</sub> with a reasonable step size. At this stage latency distributions such as <em>p50, p95, and p99</em>, as well as maximal observed latencies, can be captured and reported. This step validates the behaviour of the system under <em>production-like</em> traffic conditions.</li>
+</ol>
+<p>Together, these 2 steps reveal both the <em>intrinsic capacity</em> of the system and its latency behaviour under realistic load, providing a more complete basis for performance analysis.</p>
+<p>During both phases it’s also useful to observe <em>CPU utilisation</em>, <em>RAM consumption</em> and <em>connection pool usage</em> (if any downstream dependency is present) to identify the dominant constraint and explain where scalability breaks down.</p>
+<p>In my experiments, this method turned out to be significantly more informative than traditional <em>“single-number benchmarks”</em>, as it exposes system behavior across the entire load spectrum rather than at an arbitrary point(s).</p>
+<p>In this article, I intentionally isolate the method from experimental results; concrete measurements and system comparisons will be presented in the next part of this series.</p>
+<h2 id="conclusion">Conclusion<a class="autolink" aria-label="Link to this heading" href="#conclusion">#</a></h2>
+<p>After running numerous experiments mainly with Java-based stack, the same <em>patterns</em> consistently appeared:</p>
+<ul>
+<li>Scalability curves reliably follow the same shape: linear growth -&gt; <em>“knee”</em> -&gt; saturation;</li>
+<li>The position of the <em>“knee”</em> of the curve heavily depends on the workload type: <a href="https://en.wikipedia.org/wiki/CPU-bound" rel="noopener noreferrer" target="_blank"><em>CPU-</em></a> or <a href="https://en.wikipedia.org/wiki/I/O_bound" rel="noopener noreferrer" target="_blank"><em>IO-bound</em></a>;
+<ul>
+<li>For <em>CPU-bound</em> workload the <em>“knee”</em> appears much earlier, as concurrency cannot exceed available CPU capacity; in my experiments with 1–2 CPU core containers, it occurs at ~4–16 concurrency levels;</li>
+<li>For <em>IO-bound</em> workloads the <em>“knee”</em> appears order of magnitude later, as requests spend much of their time waiting on external services, allowing higher concurrency; it depends on the slowest downstream service latency and may occur at <em>~256–1024</em> concurrency or beyond.</li>
+</ul>
+</li>
+<li>In open workload model conditions, throughput near the <em>“knee”</em> is rarely sustainable: systems typically operate at <em>~0.6–0.9·X<sub>max</sub></em> to maintain acceptable latency.</li>
+</ul>
+<p><strong>In essence, system behavior is not defined by peak throughput, but by where the “knee” occurs and how the system behaves around it.</strong></p>
+<p>Systems whose curves reach the <em>“knee”</em> later generally sustain higher load under open workloads before latency degradation begins, making the “knee” position a practical indicator for <em>comparing systems</em> under identical conditions.</p>
+<p>These observations are consistent with earlier experimental reports (see <em>LinkedIn</em> posts <a href="https://www.linkedin.com/posts/popov85_in-earlier-research-i-evaluated-java-native-activity-7429434488960512001-U3TN?utm_source=share&utm_medium=member_desktop&rcm=ACoAABSl0AEBIJHgPxsph8iddwepVDd25FuBoeU" rel="noopener noreferrer" target="_blank">1</a>, <a href="https://www.linkedin.com/posts/popov85_i-continue-exploring-java-native-image-performance-activity-7437044827822665728-G6M1?utm_source=share&utm_medium=member_desktop&rcm=ACoAABSl0AEBIJHgPxsph8iddwepVDd25FuBoeU" rel="noopener noreferrer" target="_blank">2</a>), where similar patterns can be observed across different backend architectures.</p>
+<p>However, this method addresses only one aspect of performance analysis and doesn’t cover full benchmarking or performance tuning, which are outside the scope of this article.</p>
+<p>In the next part of this series, I will apply this method to compare the same applications across different frameworks and runtime architectures (e.g. Tomcat vs Netty, JVM vs native) under identical hardware constraints.</p>
+<h2 id="references">References<a class="autolink" aria-label="Link to this heading" href="#references">#</a></h2>
+<ul>
+<li>
+<p><a href="https://blogs.oracle.com/timesten/server-scalability-curves-a-missing-law-of-computing" rel="noopener noreferrer" target="_blank">Doug Hood (Oracle blog, 2025) Server Scalability Curves – a Missing Law of Computing?</a></p>
+</li>
+<li>
+<p><a href="https://medium.com/@srinathperera/how-do-we-measure-the-performance-of-a-microservice-service-or-server-450c562854a7" rel="noopener noreferrer" target="_blank">Srinath Perera (Medium, 2024) How do we measure the Performance of a Microservice, Service, or Server?</a>.</p>
+</li>
+<li>
+<p><a href="https://www.amazon.com/Guerrilla-Capacity-Planning-Tactical-Applications/dp/3540261389" rel="noopener noreferrer" target="_blank">Neil Gunther (Springer, 2007) <em>Guerrilla Capacity Planning: A Tactical Approach to Planning for Highly Scalable Applications and Services</em></a></p>
+</li>
+<li>
+<p><a href="https://www.amazon.com/Art-Computer-Systems-Performance-Analysis/dp/0471503363" rel="noopener noreferrer" target="_blank">Raj Jain (Wiley, 1991) <em>The Art of Computer Systems Performance Analysis: Techniques for Experimental Design, Measurement, Simulation, and Modeling</em></a></p>
+</li>
+<li>
+<p><a href="https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/" rel="noopener noreferrer" target="_blank">Grafana Labs: open and closed models</a></p>
+</li>
+<li>
+<p><a href="https://docs.gatling.io/testing-concepts/workload-models/" rel="noopener noreferrer" target="_blank">Gatling: workload models</a></p>
+</li>
+</ul>  </div> </article> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <nav aria-label="Previous and next articles" class="grid grid-cols-2 gap-5"><div class="flex flex-col items-start gap-3
+                p-2
+                text-sm
+                bg-transparent
+                border border-zinc-500
+                rounded-sm"><p class="font-normal text-zinc-600 dark:text-zinc-300">Previous</p><a href="/posts/java-native-images-benchmark/" class="
+                inline-flex items-center gap-2
+                font-semibold
+                text-neutral-600 dark:text-prnd-neon hover:scale-101 active:scale-99"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="shrink-0 w-4 h-4 text-neutral-600 dark:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"></path><path d="m11 18 1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"></path></svg><span>Java native images: static and performance analysis</span></a></div></nav> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <aside id="about-author" class="mt-0 pt-6"> <section> <div class="flex gap-4 rounded-2xl bg-zinc-100/70 dark:bg-neutral-800/60 px-4 py-4 sm:px-5 sm:py-5"> <div class="shrink-0"> <img src="/_astro/avatar.h0uefq9r_Z1i5gFo.webp" alt="Andrii Popov" loading="lazy" decoding="async" fetchpriority="auto" width="259" height="259" class="h-12 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600"> </div> <div class="space-y-2 text-sm leading-relaxed"> <h2 class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+About the author
+</h2> <p class="font-medium text-neutral-900 dark:text-neutral-50">
+Andrii Popov · Popov R&amp;D — Independent Engineering Lab
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+Independent software engineer focused on JVM-based production systems, the Spring ecosystem, and modern front-end delivery. I run independent experiments and publish architectural analysis — benchmarks, performance knees, and trade-offs — about what actually works in practice.
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+If you’d like to collaborate, feel free to reach out on LinkedIn.
+</p> <ul class="flex flex-wrap gap-3 pt-1 text-xs"> <li> <a href="https://popov-rnd.com" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-cyan-600 dark:text-cyan-200 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48C141.13 48 48 141.13 48 256s93.13 208 208 208 208-93.13 208-208S370.87 48 256 48z"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48c-58.07 0-112.67 93.13-112.67 208S197.93 464 256 464s112.67-93.13 112.67-208S314.07 48 256 48z"></path><path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M117.33 117.33c38.24 27.15 86.38 43.34 138.67 43.34s100.43-16.19 138.67-43.34m0 277.34c-38.24-27.15-86.38-43.34-138.67-43.34s-100.43 16.19-138.67 43.34"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48v416m208-208H48"></path></svg> <span>Website</span> </a> </li> <li> <a href="https://www.linkedin.com/in/Popov85/" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg> <span>LinkedIn</span> </a> </li> <li> <a href="https://github.com/Popov85" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg> <span>GitHub</span> </a> </li> </ul> </div> </div> </section> </aside> </main> <script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><astro-island uid="Z2fQQ55" prefix="r11" component-url="/_astro/ScrollToTopButton.P8reXH2a.js" component-export="ScrollToTopButton" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;ScrollToTopButton&quot;,&quot;value&quot;:true}" await-children><button aria-label="Scroll to top" class="
+                fixed bottom-6 right-6 z-[999]
+                flex items-center justify-center
+                w-12 h-12 rounded-full
+                bg-neutral-700 dark:bg-neutral-200
+                text-neutral-200 dark:text-neutral-700
+                shadow-lg shadow-black/25
+                transition-all duration-300
+                active:scale-95
+                lg:hidden
+                opacity-0 pointer-events-none
+              "><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="text-2xl active:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M256 217.9L383 345c9.4 9.4 24.6 9.4 33.9 0 9.4-9.4 9.3-24.6 0-34L273 167c-9.1-9.1-23.7-9.3-33.1-.7L95 310.9c-4.7 4.7-7 10.9-7 17s2.3 12.3 7 17c9.4 9.4 24.6 9.4 33.9 0l127.1-127z"></path></svg></button><!--astro:end--></astro-island> <footer class="mt-auto">  <hr class="mx-auto my-8 border-t border-neutral-300 dark:border-neutral-400 max-w-lg"> <div class="text-xs text-neutral-500 dark:text-neutral-300 flex flex-col justify-center items-center gap-1 pb-6"> <div><span>© 2026 Popov R&amp;D</span></div> <div>All rights reserved.</div> </div> </footer> </body></html>

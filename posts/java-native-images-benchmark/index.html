@@ -1,0 +1,233 @@
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico?v=1" sizes="any"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Popov R&#38;D Blog" href="https://blog.popov-rnd.com/rss.xml"><meta name="generator" content="Astro v5.15.1"><!-- Canonical URL --><link rel="canonical" href="https://blog.popov-rnd.com/posts/java-native-images-benchmark/"><!-- Primary Meta Tags --><title>Java native images: static and performance analysis</title><meta name="title" content="Java native images: static and performance analysis"><meta name="description" content="This benchmark compares 3 native Java executables built with Spring Boot, Quarkus and Micronaut, each configured with a minimal setup exposing only the web layer."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://blog.popov-rnd.com/posts/java-native-images-benchmark/"><meta property="og:title" content="Java native images: static and performance analysis"><meta property="og:description" content="This benchmark compares 3 native Java executables built with Spring Boot, Quarkus and Micronaut, each configured with a minimal setup exposing only the web layer."><meta property="og:site_name" content="Popov R&D Blog"><meta property="og:image" content="https://blog.popov-rnd.com/_astro/cover.B2VfvJc0.webp"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.popov-rnd.com/posts/java-native-images-benchmark/"><meta property="twitter:title" content="Java native images: static and performance analysis"><meta property="twitter:description" content="This benchmark compares 3 native Java executables built with Spring Boot, Quarkus and Micronaut, each configured with a minimal setup exposing only the web layer."><meta property="twitter:image" content="https://blog.popov-rnd.com/_astro/cover.B2VfvJc0.webp"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","url":"https://blog.popov-rnd.com","name":"Popov R&D Tech Blog","publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Java native images: static and performance analysis","description":"This benchmark compares 3 native Java executables built with Spring Boot, Quarkus and Micronaut, each configured with a minimal setup exposing only the web layer.","image":"https://blog.popov-rnd.com/_astro/cover.B2VfvJc0.webp","datePublished":"2026-03-05T00:00:00.000Z","dateModified":"2026-03-05T00:00:00.000Z","author":{"@type":"Person","name":"Andrii Popov","url":"https://popov-rnd.com/#about-me"},"publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.popov-rnd.com/posts/java-native-images-benchmark/"}}</script><link rel="stylesheet" href="/_astro/_slug_.Dce5XBvQ.css"></head> <body class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"> <header class="fixed top-0 left-0 w-full h-[65px]
+         bg-gray-50 dark:bg-neutral-800
+         font-default text-neutral-800 dark:text-neutral-50 font-medium
+         flex items-center justify-between
+         px-[1%] gap-x-[1vw] z-50 shadow-md"> <a href="/" class="flex items-center justify-center space-x-3 no-underline"> <img src="/_astro/logo.WyeL1E5S.svg" alt="Popov R&D logo" class="shrink-0 w-[45px] h-[45px] opacity-80"> <div class="flex flex-col space-y-0 text-neutral-800  dark:text-neutral-50"> <span class="text-base font-normal">POPOV R&amp;D</span> <span class="text-xs font-normal">tech blog</span> </div> </a> <!-- Desktop / Tablet --><div class="hidden md:flex items-center gap-x-[1vw]"> <nav class="flex-1 flex items-center justify-end gap-x-3 lg:gap-x-5 shrink"> <a href="/" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> Home  </span> </a> <a href="/posts" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400 font-bold"> <span class="relative inline-block"> Posts <span class="absolute left-0 -bottom-1 h-0.5 w-full bg-lime-400"></span> </span> </a> <a href="/about" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> About  </span> </a> <a href="/search" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block">  <div aria-label="Search" class="text-lg hover:text-lime-300 transition-colors"> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener("change",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event("astro:media"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="2fl2QU" prefix="r22" component-url="/_astro/SearchIcon.DS4bxQ8F.js" component-export="SearchIcon" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="media" opts="{&quot;name&quot;:&quot;SearchIcon&quot;,&quot;value&quot;:&quot;(min-width: 768px)&quot;}" await-children><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg><!--astro:end--></astro-island> </div>   </span> </a> <script>
+    const theme = (() => {
+        const stored = localStorage?.getItem("theme") ?? '';
+        if (["dark", "light"].includes(stored)) return stored;
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
+    })();
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+
+    const toggleTheme = () => {
+        const el = document.documentElement;
+        const isDark = el.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        // update knob visibility
+        const lightKnob = document.getElementById("lightKnob");
+        const darkKnob = document.getElementById("darkKnob");
+        if (lightKnob && darkKnob) {
+            lightKnob.style.opacity = isDark ? "0" : "1";
+            darkKnob.style.opacity = isDark ? "1" : "0";
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("themeButton")?.addEventListener("click", toggleTheme);
+    });
+</script> <button id="themeButton" type="button" class="relative inline-flex h-8 w-20 items-center rounded-full
+	        bg-[#C1FF72]/35 dark:bg-white/10 ring-1 ring-black/5 dark:ring-white/10
+	        shadow-sm transition-colors duration-200 focus:outline-none
+	        focus-visible:ring-2 focus-visible:ring-[#C1FF72]
+	        focus-visible:ring-offset-2 focus-visible:ring-offset-white
+	        dark:focus-visible:ring-offset-neutral-900"> <!-- Light knob --> <span id="lightKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 left-1 opacity-100">
+Light
+</span> <!-- Dark knob --> <span id="darkKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 right-1 opacity-0">
+Dark
+</span> </button> </nav> </div> <!-- Mobile / Hamburger --> <div class="md:hidden"> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="grfut" prefix="r21" component-url="/_astro/MenuGroupMobile.BhdERKXX.js" component-export="MenuGroupMobile" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;MenuGroupMobile&quot;,&quot;value&quot;:true}" await-children><button type="button" aria-label="Open menu" class="
+                inline-flex h-11 w-11 items-center justify-center
+                rounded-lg focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-prnd-accent focus-visible:ring-offset-2"><span class="relative block h-5 w-7"><span class="absolute left-0 top-0 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span><span class="absolute left-0 top-2.5 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-opacity duration-300 opacity-100"></span><span class="absolute right-0 top-5 block h-0.5 w-5 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span></span></button><div class="
+                fixed top-[65px] right-0
+                h-[calc(100vh-65px)] w-full overflow-y-auto
+                bg-gray-50 dark:bg-neutral-900 z-600
+                transform transition-transform duration-450 ease-in-out
+                translate-x-full"><nav class="flex flex-col divide-y divide-neutral-700"><a href="/" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Home</a><a href="/posts" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Posts</a><a href="/about" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">About</a><a href="/search" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Search</a></nav></div><!--astro:end--></astro-island> </div> </header> <main class="pt-[65px] w-full max-w-3xl mx-auto px-4 sm:px-8 lg:px-0 py-6 font-article"> <nav aria-label="Back to posts" class="text-left py-6"> <a href="/posts" class="
+                inline-flex items-center justify-center
+                px-2 py-1
+                bg-transparent
+                border
+                rounded-xl
+                text-sm
+                font-semibold
+                text-neutral-600 dark:text-neutral-200
+                hover:border-none hover:rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-50  hover:text-prnd-neon dark:hover:text-neutral-700
+                active:rounded-xl active:bg-neutral-800 dark:active:bg-neutral-50  active:text-neutral-50 dark:active:text-neutral-800
+                focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-110 active:scale-95
+                transition-all duration-500 ease-in-out"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 4.293a1 1 0 010 1.414L6.414 9H16a1 1 0 110 2H6.414l3.293 3.293a1 1 0 11-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg><span>Back</span></a> </nav> <article class="flex flex-col items-start"> <div class="flex flex-wrap items-start justify-start gap-x-5 gap-y-2 text-xs md:text-sm text-neutral-500 dark:text-neutral-300 mb-8"> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <time datetime="2026-03-05T00:00:00.000Z"> Mar 5, 2026 </time> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg> 10 min read
+</span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"></path></svg> <span class="inline-flex items-center gap-1"> <span class="inline-flex items-center"> <a href="/tags/graalvm" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> graalvm </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/performance" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> performance </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/benchmark" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> benchmark </a>  </span> </span> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> <a href="#about-author" class="italic hover:underline active:underline underline-offset-4">by Andrii Popov</a> </span> </div> <!--I do not display image by default!-->  <div class="w-full text-left"> <h1 class="text-3xl font-medium leading-8 tracking-normal mb-6">Java native images: static and performance analysis</h1> <p class="text-base/6 sm:text-lg/7 font-normal italic tracking-normal dark:text-neutral-200">
+"This benchmark compares 3 native Java executables built with Spring Boot, Quarkus and Micronaut, each configured with a minimal setup exposing only the web layer."</p> <hr class="h-px border-0 mt-6 mb-4 w-full bg-gradient-to-r from-neutral-500 to-transparent"> </div> <!-- Pagefind enhancements --> <div class="hidden" data-pagefind-meta="title"> Java native images: static and performance analysis </div> <div class="hidden" data-pagefind-meta="description"> This benchmark compares 3 native Java executables built with Spring Boot, Quarkus and Micronaut, each configured with a minimal setup exposing only the web layer. </div> <div class="hidden" data-pagefind-meta="tags"> graalvm, performance, benchmark </div> <!-- ⭐ Add image to Pagefind metadata --> <div class="hidden" data-pagefind-meta="image"> /_astro/cover.B2VfvJc0.webp </div> <div class="markdown-content w-full" data-pagefind-body>  <p>As of 2026, the Java ecosystem has matured to support building native executables via ahead-of-time (AOT) compilation. Today, all major Java frameworks such as Spring Boot, Quarkus and Micronaut provide native image support out of the box.</p>
+<p>However, there are still relatively few <em>trusted benchmarks</em> that compare the native images produced by these frameworks in an <em>unbiased and reproducible</em> way.</p>
+<p>In this article, I aim to address that gap by conducting my <em>independent</em> evaluation.</p>
+<p>The analysis is structured in <strong>2</strong> parts:</p>
+<ul>
+<li><em>Static characteristics</em>: startup time, memory footprint (RSS), executable size, etc.;</li>
+<li><em>Runtime characteristics</em>: max throughput and latency behavior under load.</li>
+</ul>
+<h2 id="set-up">Set-up<a class="autolink" aria-label="Link to this heading" href="#set-up">#</a></h2>
+<p>To ensure objectivity, I created 3 separate Java projects in my IDE based on Spring Boot, Quarkus, and Micronaut (GitHub link will be attached at the end).</p>
+<p>Each project includes only the minimal set of dependencies required to expose the web layer (HTTP server, JSON binding, validation, etc.).</p>
+<p>Dependency selection was framework-driven: some frameworks provide bundled starters, others require manual composition. The intent was to compare metrics in realistic <em>“minimal viable”</em> setups, not a synthetic dependency set.</p>
+<p>I deliberately did not attempt to normalize the underlying web server across frameworks, instead selecting the default, recommended stack for each framework.</p>
+<p>As such:</p>
+<ul>
+<li><a href="https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.embedded-container" rel="noopener noreferrer" target="_blank">Spring Boot</a> exposes Tomcat (servlet-based stack);</li>
+<li><a href="https://quarkus.io/guides/rest" rel="noopener noreferrer" target="_blank">Quarkus</a> exposes Netty via Vert.x;</li>
+<li><a href="https://docs.micronaut.io/latest/guide/#httpServer" rel="noopener noreferrer" target="_blank">Micronaut</a> exposes Netty.</li>
+</ul>
+<p>Each framework provides official guidance for building native images:</p>
+<ul>
+<li><a href="https://docs.spring.io/spring-boot/how-to/native-image/developing-your-first-application.html" rel="noopener noreferrer" target="_blank">Spring Boot</a> via native build tools or cloud native buildpacks;</li>
+<li><a href="https://quarkus.io/guides/maven-tooling#building-a-native-executable" rel="noopener noreferrer" target="_blank">Quarkus</a> via local build or container-based native build;</li>
+<li><a href="https://micronaut-projects.github.io/micronaut-gradle-plugin/latest/index.html#native-image" rel="noopener noreferrer" target="_blank">Micronaut</a> via local build or containerised build;</li>
+</ul>
+<p>Each framework typically provides 2 approaches for building native executables using:</p>
+<ul>
+<li>locally installed GraalVM distribution;</li>
+<li>a containerized build process that does not require a local GraalVM installation.</li>
+</ul>
+<p>For this experiment, I used the local build approach and the same GraalVM version across all frameworks to ensure a normalized and comparable setup.</p>
+<p>In each case, the officially supported Maven or Gradle plugin provided by the framework was used to drive the native image build process.</p>
+<p>Default GraalVM optimization level <code>-O2</code> was used, as it targets runtime performance.
+Default GraalVM machine architecture flag was used <code>-march=compatibility</code>, as it targets for best portability.
+Default GraalVM garbage collector impl. being <code>Serial GC</code> was used, the only supported by CE (Community Edition) distribution.</p>
+<h3 id="hardware">Hardware<a class="autolink" aria-label="Link to this heading" href="#hardware">#</a></h3>
+<p>I conducted all measurements on my local Linux Mint (kernel 5.15.0) PC with the following configuration:</p>
+<ul>
+<li><code>CPU Intel Core i7, 8x2.9GHz</code></li>
+<li><code>SSD NVMe PCIe 4.0 x4, 500GB</code></li>
+<li><code>RAM DDR4-2666, 32Gb</code></li>
+</ul>
+<h3 id="software">Software<a class="autolink" aria-label="Link to this heading" href="#software">#</a></h3>
+<p>For this benchmark, I used locally installed via SDKMAN GraalVM JDK 25 CE (Community Edition, except for Quarkus I used Mandrel).</p>
+<p>Additional software included (latest versions as of Jan 2026):</p>
+<ul>
+<li><code>Docker engine</code> v. 29.1.3;</li>
+<li><code>Spring Boot</code> v. 4.0;</li>
+<li><code>Quarkus</code> v. 3.30;</li>
+<li><code>Micronaut</code> v. 4.6;</li>
+<li><code>GraalVM JDK</code> CE or Mandrel v. 25;</li>
+<li><code>Grafana k6</code>, v. 1.6</li>
+</ul>
+<h2 id="static-characteristics">Static characteristics<a class="autolink" aria-label="Link to this heading" href="#static-characteristics">#</a></h2>
+<p>I measured the following characteristics:</p>
+<ul>
+<li><em>Startup time</em> -&gt; taken after first http 200 response (not relying on, framework logs <em>“Started in _ s”</em> messages).</li>
+<li><em>Memory usage</em> -&gt; from standard RSS Unix tool, <em>ps -p $MY_PID -o rss</em>.</li>
+<li><em>Artifact size</em> -&gt; from <em>ls -lh</em> or direct filesystem metadata.</li>
+<li><em>Build time</em> -&gt; taken from Maven’s own build output (e.g., [INFO] BUILD SUCCESS in _ s).</li>
+</ul>
+<h3 id="method">Method<a class="autolink" aria-label="Link to this heading" href="#method">#</a></h3>
+<p>For collecting metrics I used .sh <a href="https://github.com/popov-rnd/script-aot-benchmark/blob/main/benchmark.sh" rel="noopener noreferrer" target="_blank">script</a>, similar to the one featured in the presentation <a href="https://www.youtube.com/watch?v=uAYYDJ_ubBg" rel="noopener noreferrer" target="_blank">“Bootiful GraalVM by Thomas Wuerthinger / Josh Long @ Spring I/O 2025”</a>.</p>
+<p>Every of 3 apps contained empty GET / endpoint for measuring the moment when the first response after start-up is received.</p>
+<h3 id="results">Results<a class="autolink" aria-label="Link to this heading" href="#results">#</a></h3>
+<p>Startup time (<strong>Fig. 1.1</strong>). Startup was defined as the moment the first <em>HTTP 200</em> response was received, polled every 1 ms (no reliance on framework logs). For both cold and warm starts, Quarkus was consistently the fastest.</p>
+<figure class="m-6 text-center"> <img src="/_astro/static_startup.B9q6msvJ_2tq2z.webp" alt="Java native executables start up timings" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1.1 </strong> <p>Java native executable start-up time per framework, <em>cold</em> - fresh OS start and <em>warm</em> - all consecutive starts.</p> </figcaption> </figure>
+<p>Memory footprint (<strong>Fig. 1.2</strong>). Measured immediately after the first successful response via standard Unix RSS tools. Here, Quarkus consumed the least memory before any load.</p>
+<figure class="m-6 text-center"> <img src="/_astro/static_footprint.CVEfqNTe_Z1dMetX.webp" alt="Java native executables memory footprint" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1.2 </strong> <p>Java native executable memory footprint per framework: RSS (Residential set size).</p> </figcaption> </figure>
+<p>Native executable size (<strong>Fig. 1.3</strong>). The final native artifacts produced by framework building plugins showed Quarkus as the most compact.</p>
+<figure class="m-6 text-center"> <img src="/_astro/static_image.BS8sekvZ_Z1fMYO2.webp" alt="Java native executables image size" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1.3 </strong> <p>Java native executable image size per framework.</p> </figcaption> </figure>
+<p>Additional observations during the test:</p>
+<ul>
+<li>Native compilation time ranged from <em>59-69</em> sec across frameworks, and the process fully saturated CPU cores.</li>
+<li>Shared memory was negligible and similar across frameworks, so RSS closely matched private memory per instance.</li>
+<li>Readiness reported by the frameworks occurred <em>2-3×</em> earlier than the apps were actually ready to serve HTTP requests.</li>
+</ul>
+<p>Quarkus native showed the leanest overall <em>static profile</em> across startup time, memory usage, and binary size. Still, the real takeaway isn’t the exact numbers but the general scale: all frameworks ended up in a similar performance range typical for modern native Java apps.</p>
+<p>These results help set <em><strong>realistic expectations</strong></em> rather than define hard, fixed values.</p>
+<h2 id="runtime-characteristics">Runtime characteristics<a class="autolink" aria-label="Link to this heading" href="#runtime-characteristics">#</a></h2>
+<h3 id="method-1">Method<a class="autolink" aria-label="Link to this heading" href="#method-1">#</a></h3>
+<h3 id="results-1">Results<a class="autolink" aria-label="Link to this heading" href="#results-1">#</a></h3>
+<h2 id="conclusion">Conclusion<a class="autolink" aria-label="Link to this heading" href="#conclusion">#</a></h2>
+<h2 id="references">References<a class="autolink" aria-label="Link to this heading" href="#references">#</a></h2>
+<ul>
+<li><a href="https://docs.oracle.com/javase/specs/jls/se25/html/index.html" rel="noopener noreferrer" target="_blank">Java Language Specification</a></li>
+</ul>  </div> </article> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <nav aria-label="Previous and next articles" class="grid grid-cols-2 gap-5"><div class="flex flex-col items-start gap-3
+                p-2
+                text-sm
+                bg-transparent
+                border border-zinc-500
+                rounded-sm"><p class="font-normal text-zinc-600 dark:text-zinc-300">Previous</p><a href="/posts/java-compilation-strategies/" class="
+                inline-flex items-center gap-2
+                font-semibold
+                text-neutral-600 dark:text-prnd-neon hover:scale-101 active:scale-99"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="shrink-0 w-4 h-4 text-neutral-600 dark:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"></path><path d="m11 18 1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"></path></svg><span>Java compilation strategies: JIT vs AOT</span></a></div><div class="flex flex-col items-end gap-3
+                p-2
+                text-sm
+                bg-transparent
+                border border-zinc-500
+                rounded-sm"><p class="font-normal text-zinc-600 dark:text-zinc-300">Next</p><a href="/posts/server-scalability-curves/" class="
+                inline-flex items-center gap-2
+                font-semibold
+                text-neutral-600 dark:text-prnd-neon hover:scale-101 active:scale-99"><span class="text-right">Server scalability curves: a method of systems performance analysis</span><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="shrink-0 w-4 h-4 text-neutral-600 dark:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M6.41 6 5 7.41 9.58 12 5 16.59 6.41 18l6-6z"></path><path d="m13 6-1.41 1.41L16.17 12l-4.58 4.59L13 18l6-6z"></path></svg></a></div></nav> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <aside id="about-author" class="mt-0 pt-6"> <section> <div class="flex gap-4 rounded-2xl bg-zinc-100/70 dark:bg-neutral-800/60 px-4 py-4 sm:px-5 sm:py-5"> <div class="shrink-0"> <img src="/_astro/avatar.h0uefq9r_Z1i5gFo.webp" alt="Andrii Popov" loading="lazy" decoding="async" fetchpriority="auto" width="259" height="259" class="h-12 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600"> </div> <div class="space-y-2 text-sm leading-relaxed"> <h2 class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+About the author
+</h2> <p class="font-medium text-neutral-900 dark:text-neutral-50">
+Andrii Popov · Popov R&amp;D — Independent Engineering Lab
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+Independent software engineer focused on JVM-based production systems, the Spring ecosystem, and modern front-end delivery. I run independent experiments and publish architectural analysis — benchmarks, performance knees, and trade-offs — about what actually works in practice.
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+If you’d like to collaborate, feel free to reach out on LinkedIn.
+</p> <ul class="flex flex-wrap gap-3 pt-1 text-xs"> <li> <a href="https://popov-rnd.com" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-cyan-600 dark:text-cyan-200 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48C141.13 48 48 141.13 48 256s93.13 208 208 208 208-93.13 208-208S370.87 48 256 48z"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48c-58.07 0-112.67 93.13-112.67 208S197.93 464 256 464s112.67-93.13 112.67-208S314.07 48 256 48z"></path><path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M117.33 117.33c38.24 27.15 86.38 43.34 138.67 43.34s100.43-16.19 138.67-43.34m0 277.34c-38.24-27.15-86.38-43.34-138.67-43.34s-100.43 16.19-138.67 43.34"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48v416m208-208H48"></path></svg> <span>Website</span> </a> </li> <li> <a href="https://www.linkedin.com/in/Popov85/" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg> <span>LinkedIn</span> </a> </li> <li> <a href="https://github.com/Popov85" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg> <span>GitHub</span> </a> </li> </ul> </div> </div> </section> </aside> </main> <script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><astro-island uid="Z2fQQ55" prefix="r11" component-url="/_astro/ScrollToTopButton.P8reXH2a.js" component-export="ScrollToTopButton" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;ScrollToTopButton&quot;,&quot;value&quot;:true}" await-children><button aria-label="Scroll to top" class="
+                fixed bottom-6 right-6 z-[999]
+                flex items-center justify-center
+                w-12 h-12 rounded-full
+                bg-neutral-700 dark:bg-neutral-200
+                text-neutral-200 dark:text-neutral-700
+                shadow-lg shadow-black/25
+                transition-all duration-300
+                active:scale-95
+                lg:hidden
+                opacity-0 pointer-events-none
+              "><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="text-2xl active:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M256 217.9L383 345c9.4 9.4 24.6 9.4 33.9 0 9.4-9.4 9.3-24.6 0-34L273 167c-9.1-9.1-23.7-9.3-33.1-.7L95 310.9c-4.7 4.7-7 10.9-7 17s2.3 12.3 7 17c9.4 9.4 24.6 9.4 33.9 0l127.1-127z"></path></svg></button><!--astro:end--></astro-island> <footer class="mt-auto">  <hr class="mx-auto my-8 border-t border-neutral-300 dark:border-neutral-400 max-w-lg"> <div class="text-xs text-neutral-500 dark:text-neutral-300 flex flex-col justify-center items-center gap-1 pb-6"> <div><span>© 2026 Popov R&amp;D</span></div> <div>All rights reserved.</div> </div> </footer> </body></html>
