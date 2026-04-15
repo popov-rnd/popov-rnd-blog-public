@@ -1,0 +1,398 @@
+<!DOCTYPE html><html lang="en"> <head><!-- Global Metadata --><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="icon" href="/favicon.ico?v=1" sizes="any"><link rel="sitemap" href="/sitemap-index.xml"><link rel="alternate" type="application/rss+xml" title="Popov R&#38;D Blog" href="https://blog.popov-rnd.com/rss.xml"><meta name="generator" content="Astro v5.15.1"><!-- Canonical URL --><link rel="canonical" href="https://blog.popov-rnd.com/posts/jvm-vs-native-benchmark/"><!-- Primary Meta Tags --><title>JVM vs native: performance analysis</title><meta name="title" content="JVM vs native: performance analysis"><meta name="description" content="This article compares JVM and GraalVM native executables across major Java frameworks, focusing on throughput, latency, and resource usage under load."><!-- Open Graph / Facebook --><meta property="og:type" content="website"><meta property="og:url" content="https://blog.popov-rnd.com/posts/jvm-vs-native-benchmark/"><meta property="og:title" content="JVM vs native: performance analysis"><meta property="og:description" content="This article compares JVM and GraalVM native executables across major Java frameworks, focusing on throughput, latency, and resource usage under load."><meta property="og:site_name" content="Popov R&D Blog"><meta property="og:image" content="https://blog.popov-rnd.com/_astro/cover.BXz3vuh0.webp"><!-- Twitter --><meta property="twitter:card" content="summary_large_image"><meta property="twitter:url" content="https://blog.popov-rnd.com/posts/jvm-vs-native-benchmark/"><meta property="twitter:title" content="JVM vs native: performance analysis"><meta property="twitter:description" content="This article compares JVM and GraalVM native executables across major Java frameworks, focusing on throughput, latency, and resource usage under load."><meta property="twitter:image" content="https://blog.popov-rnd.com/_astro/cover.BXz3vuh0.webp"><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","url":"https://blog.popov-rnd.com","name":"Popov R&D Tech Blog","publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"}}</script><script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"JVM vs native: performance analysis","description":"This article compares JVM and GraalVM native executables across major Java frameworks, focusing on throughput, latency, and resource usage under load.","image":"https://blog.popov-rnd.com/_astro/cover.BXz3vuh0.webp","datePublished":"2026-04-15T00:00:00.000Z","dateModified":"2026-04-15T00:00:00.000Z","author":{"@type":"Person","name":"Andrii Popov","url":"https://popov-rnd.com/#about-me"},"publisher":{"@type":"Organization","name":"Popov R&D","url":"https://popov-rnd.com"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://blog.popov-rnd.com/posts/jvm-vs-native-benchmark/"}}</script><link rel="stylesheet" href="/_astro/_slug_.vraO6MTr.css"></head> <body class="bg-neutral-50 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200"> <header class="fixed top-0 left-0 w-full h-[65px]
+         bg-gray-50 dark:bg-neutral-800
+         font-default text-neutral-800 dark:text-neutral-50 font-medium
+         flex items-center justify-between
+         px-[1%] gap-x-[1vw] z-50 shadow-md"> <a href="/" class="flex items-center justify-center space-x-3 no-underline"> <img src="/_astro/logo.WyeL1E5S.svg" alt="Popov R&D logo" class="shrink-0 w-[45px] h-[45px] opacity-80"> <div class="flex flex-col space-y-0 text-neutral-800  dark:text-neutral-50"> <span class="text-base font-normal">POPOV R&amp;D</span> <span class="text-xs font-normal">tech blog</span> </div> </a> <!-- Desktop / Tablet --><div class="hidden md:flex items-center gap-x-[1vw]"> <nav class="flex-1 flex items-center justify-end gap-x-3 lg:gap-x-5 shrink"> <a href="/" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> Home  </span> </a> <a href="/posts" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400 font-bold"> <span class="relative inline-block"> Posts <span class="absolute left-0 -bottom-1 h-0.5 w-full bg-lime-400"></span> </span> </a> <a href="/about" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block"> About  </span> </a> <a href="/search" class="relative transition-colors duration-200 text-neutral-800 dark:text-neutral-50 text-[clamp(14px,1.2vw,16px)] cursor-pointer hover:text-lime-400"> <span class="relative inline-block">  <div aria-label="Search" class="text-lg hover:text-lime-300 transition-colors"> <style>astro-island,astro-slot,astro-static-slot{display:contents}</style><script>(()=>{var n=(a,t)=>{let i=async()=>{await(await a())()};if(t.value){let e=matchMedia(t.value);e.matches?i():e.addEventListener("change",i,{once:!0})}};(self.Astro||(self.Astro={})).media=n;window.dispatchEvent(new Event("astro:media"));})();</script><script>(()=>{var A=Object.defineProperty;var g=(i,o,a)=>o in i?A(i,o,{enumerable:!0,configurable:!0,writable:!0,value:a}):i[o]=a;var d=(i,o,a)=>g(i,typeof o!="symbol"?o+"":o,a);{let i={0:t=>m(t),1:t=>a(t),2:t=>new RegExp(t),3:t=>new Date(t),4:t=>new Map(a(t)),5:t=>new Set(a(t)),6:t=>BigInt(t),7:t=>new URL(t),8:t=>new Uint8Array(t),9:t=>new Uint16Array(t),10:t=>new Uint32Array(t),11:t=>1/0*t},o=t=>{let[l,e]=t;return l in i?i[l](e):void 0},a=t=>t.map(o),m=t=>typeof t!="object"||t===null?t:Object.fromEntries(Object.entries(t).map(([l,e])=>[l,o(e)]));class y extends HTMLElement{constructor(){super(...arguments);d(this,"Component");d(this,"hydrator");d(this,"hydrate",async()=>{var b;if(!this.hydrator||!this.isConnected)return;let e=(b=this.parentElement)==null?void 0:b.closest("astro-island[ssr]");if(e){e.addEventListener("astro:hydrate",this.hydrate,{once:!0});return}let c=this.querySelectorAll("astro-slot"),n={},h=this.querySelectorAll("template[data-astro-template]");for(let r of h){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("data-astro-template")||"default"]=r.innerHTML,r.remove())}for(let r of c){let s=r.closest(this.tagName);s!=null&&s.isSameNode(this)&&(n[r.getAttribute("name")||"default"]=r.innerHTML)}let p;try{p=this.hasAttribute("props")?m(JSON.parse(this.getAttribute("props"))):{}}catch(r){let s=this.getAttribute("component-url")||"<unknown>",v=this.getAttribute("component-export");throw v&&(s+=` (export ${v})`),console.error(`[hydrate] Error parsing props for component ${s}`,this.getAttribute("props"),r),r}let u;await this.hydrator(this)(this.Component,p,n,{client:this.getAttribute("client")}),this.removeAttribute("ssr"),this.dispatchEvent(new CustomEvent("astro:hydrate"))});d(this,"unmount",()=>{this.isConnected||this.dispatchEvent(new CustomEvent("astro:unmount"))})}disconnectedCallback(){document.removeEventListener("astro:after-swap",this.unmount),document.addEventListener("astro:after-swap",this.unmount,{once:!0})}connectedCallback(){if(!this.hasAttribute("await-children")||document.readyState==="interactive"||document.readyState==="complete")this.childrenConnectedCallback();else{let e=()=>{document.removeEventListener("DOMContentLoaded",e),c.disconnect(),this.childrenConnectedCallback()},c=new MutationObserver(()=>{var n;((n=this.lastChild)==null?void 0:n.nodeType)===Node.COMMENT_NODE&&this.lastChild.nodeValue==="astro:end"&&(this.lastChild.remove(),e())});c.observe(this,{childList:!0}),document.addEventListener("DOMContentLoaded",e)}}async childrenConnectedCallback(){let e=this.getAttribute("before-hydration-url");e&&await import(e),this.start()}async start(){let e=JSON.parse(this.getAttribute("opts")),c=this.getAttribute("client");if(Astro[c]===void 0){window.addEventListener(`astro:${c}`,()=>this.start(),{once:!0});return}try{await Astro[c](async()=>{let n=this.getAttribute("renderer-url"),[h,{default:p}]=await Promise.all([import(this.getAttribute("component-url")),n?import(n):()=>()=>{}]),u=this.getAttribute("component-export")||"default";if(!u.includes("."))this.Component=h[u];else{this.Component=h;for(let f of u.split("."))this.Component=this.Component[f]}return this.hydrator=p,this.hydrate},e,this)}catch(n){console.error(`[astro-island] Error hydrating ${this.getAttribute("component-url")}`,n)}}attributeChangedCallback(){this.hydrate()}}d(y,"observedAttributes",["props"]),customElements.get("astro-island")||customElements.define("astro-island",y)}})();</script><astro-island uid="2fl2QU" prefix="r20" component-url="/_astro/SearchIcon.DS4bxQ8F.js" component-export="SearchIcon" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="media" opts="{&quot;name&quot;:&quot;SearchIcon&quot;,&quot;value&quot;:&quot;(min-width: 768px)&quot;}" await-children><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z"></path></svg><!--astro:end--></astro-island> </div>   </span> </a> <script>
+    const theme = (() => {
+        const stored = localStorage?.getItem("theme") ?? '';
+        if (["dark", "light"].includes(stored)) return stored;
+        if (window.matchMedia("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
+    })();
+
+    document.documentElement.classList.toggle("dark", theme === "dark");
+
+    const toggleTheme = () => {
+        const el = document.documentElement;
+        const isDark = el.classList.toggle("dark");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+
+        // update knob visibility
+        const lightKnob = document.getElementById("lightKnob");
+        const darkKnob = document.getElementById("darkKnob");
+        if (lightKnob && darkKnob) {
+            lightKnob.style.opacity = isDark ? "0" : "1";
+            darkKnob.style.opacity = isDark ? "1" : "0";
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("themeButton")?.addEventListener("click", toggleTheme);
+    });
+</script> <button id="themeButton" type="button" class="relative inline-flex h-8 w-20 items-center rounded-full
+	        bg-[#C1FF72]/35 dark:bg-white/10 ring-1 ring-black/5 dark:ring-white/10
+	        shadow-sm transition-colors duration-200 focus:outline-none
+	        focus-visible:ring-2 focus-visible:ring-[#C1FF72]
+	        focus-visible:ring-offset-2 focus-visible:ring-offset-white
+	        dark:focus-visible:ring-offset-neutral-900"> <!-- Light knob --> <span id="lightKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 left-1 opacity-100">
+Light
+</span> <!-- Dark knob --> <span id="darkKnob" class="absolute top-1 h-6 w-1/2 rounded-full
+                flex items-center justify-center
+                font-normal text-[10.5px] tracking-widest
+                bg-lime-300 text-neutral-900 shadow-sm
+                transition-all duration-200 right-1 opacity-0">
+Dark
+</span> </button> </nav> </div> <!-- Mobile / Hamburger --> <div class="md:hidden"> <script>(()=>{var a=(s,i,o)=>{let r=async()=>{await(await s())()},t=typeof i.value=="object"?i.value:void 0,c={rootMargin:t==null?void 0:t.rootMargin},n=new IntersectionObserver(e=>{for(let l of e)if(l.isIntersecting){n.disconnect(),r();break}},c);for(let e of o.children)n.observe(e)};(self.Astro||(self.Astro={})).visible=a;window.dispatchEvent(new Event("astro:visible"));})();</script><astro-island uid="grfut" prefix="r19" component-url="/_astro/MenuGroupMobile.BhdERKXX.js" component-export="MenuGroupMobile" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="visible" opts="{&quot;name&quot;:&quot;MenuGroupMobile&quot;,&quot;value&quot;:true}" await-children><button type="button" aria-label="Open menu" class="
+                inline-flex h-11 w-11 items-center justify-center
+                rounded-lg focus-visible:outline-none
+                focus-visible:ring-2 focus-visible:ring-prnd-accent focus-visible:ring-offset-2"><span class="relative block h-5 w-7"><span class="absolute left-0 top-0 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span><span class="absolute left-0 top-2.5 block h-0.5 w-7 rounded bg-neutral-800 dark:bg-neutral-50 transition-opacity duration-300 opacity-100"></span><span class="absolute right-0 top-5 block h-0.5 w-5 rounded bg-neutral-800 dark:bg-neutral-50 transition-transform duration-300 "></span></span></button><div class="
+                fixed top-[65px] right-0
+                h-[calc(100vh-65px)] w-full overflow-y-auto
+                bg-gray-50 dark:bg-neutral-900 z-600
+                transform transition-transform duration-450 ease-in-out
+                translate-x-full"><nav class="flex flex-col divide-y divide-neutral-700"><a href="/" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Home</a><a href="/posts" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Posts</a><a href="/about" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">About</a><a href="/search" class="
+                            block px-[2%]
+                            py-3 sm:py-4 md:py-5
+                            text-[14px] sm:text-[15px] md:text-[16px] font-medium
+                            text-neutral-800
+                            dark:text-neutral-50
+                            hover:text-prnd-neon
+                            focus-visible:outline-none focus-visible:ring-2
+                            focus-visible:ring-prnd-neon">Search</a></nav></div><!--astro:end--></astro-island> </div> </header> <main class="pt-[65px] w-full max-w-3xl mx-auto px-4 sm:px-8 lg:px-0 py-6 font-article"> <nav aria-label="Back to posts" class="text-left py-6"> <a href="/posts" class="
+                inline-flex items-center justify-center
+                px-2 py-1
+                bg-transparent
+                border
+                rounded-xl
+                text-sm
+                font-semibold
+                text-neutral-600 dark:text-neutral-200
+                hover:border-none hover:rounded-xl hover:bg-neutral-800 dark:hover:bg-neutral-50  hover:text-prnd-neon dark:hover:text-neutral-700
+                active:rounded-xl active:bg-neutral-800 dark:active:bg-neutral-50  active:text-neutral-50 dark:active:text-neutral-800
+                focus:outline-none focus:ring-2 focus:ring-offset-2 hover:scale-110 active:scale-95
+                transition-all duration-500 ease-in-out"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M9.707 4.293a1 1 0 010 1.414L6.414 9H16a1 1 0 110 2H6.414l3.293 3.293a1 1 0 11-1.414 1.414l-5-5a1 1 0 010-1.414l5-5a1 1 0 011.414 0z" clip-rule="evenodd"></path></svg><span>Back</span></a> </nav> <article class="flex flex-col items-start"> <div class="flex flex-wrap items-start justify-start gap-x-5 gap-y-2 text-xs md:text-sm text-neutral-500 dark:text-neutral-300 mb-8"> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M8 2v4"></path><path d="M16 2v4"></path><rect width="18" height="18" x="3" y="4" rx="2"></rect><path d="M3 10h18"></path><path d="M8 14h.01"></path><path d="M12 14h.01"></path><path d="M16 14h.01"></path><path d="M8 18h.01"></path><path d="M12 18h.01"></path><path d="M16 18h.01"></path></svg> <time datetime="2026-04-15T00:00:00.000Z"> Apr 15, 2026 </time> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M464 256A208 208 0 1 1 48 256a208 208 0 1 1 416 0zM0 256a256 256 0 1 0 512 0A256 256 0 1 0 0 256zM232 120l0 136c0 8 4 15.5 10.7 20l96 64c11 7.4 25.9 4.4 33.3-6.7s4.4-25.9-6.7-33.3L280 243.2 280 120c0-13.3-10.7-24-24-24s-24 10.7-24 24z"></path></svg> 10 min read
+</span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M440.667 182.109l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l14.623-81.891C377.123 38.754 371.468 32 363.997 32h-40.632a12 12 0 0 0-11.813 9.891L296.175 128H197.54l14.623-81.891C213.477 38.754 207.822 32 200.35 32h-40.632a12 12 0 0 0-11.813 9.891L132.528 128H53.432a12 12 0 0 0-11.813 9.891l-7.143 40C33.163 185.246 38.818 192 46.289 192h74.81L98.242 320H19.146a12 12 0 0 0-11.813 9.891l-7.143 40C-1.123 377.246 4.532 384 12.003 384h74.81L72.19 465.891C70.877 473.246 76.532 480 84.003 480h40.632a12 12 0 0 0 11.813-9.891L151.826 384h98.634l-14.623 81.891C234.523 473.246 240.178 480 247.65 480h40.632a12 12 0 0 0 11.813-9.891L315.472 384h79.096a12 12 0 0 0 11.813-9.891l7.143-40c1.313-7.355-4.342-14.109-11.813-14.109h-74.81l22.857-128h79.096a12 12 0 0 0 11.813-9.891zM261.889 320h-98.634l22.857-128h98.634l-22.857 128z"></path></svg> <span class="inline-flex items-center gap-1"> <span class="inline-flex items-center"> <a href="/tags/jvm" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> jvm </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/graalvm" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> graalvm </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/performance" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> performance </a> <span class="mx-1">/</span> </span><span class="inline-flex items-center"> <a href="/tags/benchmark" class="hover:underline active:underline underline-offset-4
+                                                               lg:hover:text-cyan-600 lg:dark:hover:text-prnd-neon
+                                                               active:text-cyan-600 dark:active:text-prnd-neon
+                                                               transition-colors"> benchmark </a>  </span> </span> </span> <span class="inline-flex items-center gap-2 shrink-0"> <svg stroke="currentColor" fill="none" stroke-width="2" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 text-neutral-500 dark:text-neutral-300" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg> <a href="#about-author" class="italic hover:underline active:underline underline-offset-4">by Andrii Popov</a> </span> </div> <!--I do not display image by default!-->  <div class="w-full text-left"> <h1 class="text-3xl font-medium leading-8 tracking-normal mb-6">JVM vs native: performance analysis</h1> <p class="text-base/6 sm:text-lg/7 font-normal italic tracking-normal dark:text-neutral-200">
+"This article compares JVM and GraalVM native executables across major Java frameworks, focusing on throughput, latency, and resource usage under load."</p> <hr class="h-px border-0 mt-6 mb-4 w-full bg-gradient-to-r from-neutral-500 to-transparent"> </div> <!-- Pagefind enhancements --> <div class="hidden" data-pagefind-meta="title"> JVM vs native: performance analysis </div> <div class="hidden" data-pagefind-meta="description"> This article compares JVM and GraalVM native executables across major Java frameworks, focusing on throughput, latency, and resource usage under load. </div> <div class="hidden" data-pagefind-meta="tags"> jvm, graalvm, performance, benchmark </div> <!-- ⭐ Add image to Pagefind metadata --> <div class="hidden" data-pagefind-meta="image"> /_astro/cover.BXz3vuh0.webp </div> <div class="markdown-content w-full" data-pagefind-body>  <p>The performance gap between the same Java application running on the JVM and compiled with GraalVM into a native executable is often assumed without actually realizing <em><strong>the magnitude of the difference</strong></em>.</p>
+<p>Most performance comparisons today focus on <em>memory footprint</em> and <em>startup time</em>, while fewer analyses address runtime metrics such as <em>throughput and latency</em>.</p>
+<p>There are relatively few benchmarks that compare JVM and native modes for major Java frameworks (Spring Boot, Quarkus, Micronaut) in a <em>reproducible and unbiased</em> way. A recent <a href="https://quarkus.io/blog/new-benchmarks/" rel="noopener noreferrer" target="_blank">study</a> by the Quarkus team is one of the few public references.</p>
+<p>In this article, I aim to address that gap by conducting my <em>independent</em> evaluation.</p>
+<p>I looked at the systems from <strong>3</strong> angles:</p>
+<ul>
+<li><em>Throughput scaling</em> (closed workload model);</li>
+<li><em>Latency under load</em> (open workload model);</li>
+<li><em>Resource usage</em> (CPU and memory under load).</li>
+</ul>
+<p>In this article, <em>“JVM mode”</em> refers to running the application on the JVM, while <em>“native mode”</em> refers to an ahead-of-time (AOT) compiled native executable (<a href="https://www.graalvm.org/latest/reference-manual/native-image/" rel="noopener noreferrer" target="_blank">GraalVM Native Image</a>).</p>
+<h2 id="objectives">Objectives<a class="autolink" aria-label="Link to this heading" href="#objectives">#</a></h2>
+<p>The goal was to build an equivalent minimal application in each framework and evaluate their behavior under identical workloads and configuration constraints.</p>
+<p>Specifically:</p>
+<ul>
+<li>Compare throughput between JVM and native modes;</li>
+<li>Evaluate whether this difference is consistent across Spring Boot, Quarkus, and Micronaut;</li>
+<li>Compare resource usage (CPU and memory) between modes.</li>
+</ul>
+<p>The focus is on <em>relative differences</em> rather than absolute values.
+<em>Cross-framework</em> comparisons are not the primary focus of this study.</p>
+<h2 id="workload-design">Workload design<a class="autolink" aria-label="Link to this heading" href="#workload-design">#</a></h2>
+<p>Given my <em>objectives</em>, I considered the following <a href="https://github.com/TechEmpower/FrameworkBenchmarks/wiki/Project-Information-Framework-Tests-Overview" rel="noopener noreferrer" target="_blank">designs</a>:</p>
+<ul>
+<li><em>GET /plaintext HTTP/1.1</em>;</li>
+<li><em>GET /json HTTP/1.1</em>;</li>
+</ul>
+<p>However, I chose a different setup:</p>
+<ul>
+<li><em><strong>POST /ingest HTTP/1.1</strong></em> with JSON body ~300 Bytes; a set of payloads was pre-generated in advance.</li>
+</ul>
+<p>The goal was to model a real-world scenario, where JSON parsing and validations (via <a href="https://beanvalidation.org/" rel="noopener noreferrer" target="_blank">Jakarta Validation</a>) are part of the critical path.</p>
+<p>Each request is routed to a controller, parsed into a Java object, validated at the field level, and ends with <em>204 No Content</em> response.</p>
+<h2 id="experiment-set-up">Experiment set-up<a class="autolink" aria-label="Link to this heading" href="#experiment-set-up">#</a></h2>
+<p>To ensure objectivity, I created <strong>3</strong> separate Java projects based on Spring Boot, Quarkus, and Micronaut (source code will be provided at the end).</p>
+<h3 id="application-bootstrap">Application bootstrap<a class="autolink" aria-label="Link to this heading" href="#application-bootstrap">#</a></h3>
+<p>Each project uses the <em>minimal dependencies</em> required to expose the web layer (HTTP server, JSON binding, validation), following each framework’s recommended setup.</p>
+<p>The goal was to compare realistic <em>“minimal viable”</em> applications — not an artificially normalized dependency set.</p>
+<p>The underlying web server was not unified; each framework was used with its default stack: <a href="https://docs.spring.io/spring-boot/reference/web/servlet.html#web.servlet.embedded-container" rel="noopener noreferrer" target="_blank">Spring Boot</a> uses Tomcat (servlet-based stack); <a href="https://quarkus.io/guides/rest" rel="noopener noreferrer" target="_blank">Quarkus</a> and <a href="https://docs.micronaut.io/latest/guide/#httpServer" rel="noopener noreferrer" target="_blank">Micronaut</a> uses Netty (event-loop).</p>
+<p>All applications expose an equivalent minimal endpoint: <em>POST /ingest</em> without business logic, returning <em>204 No Content</em>.</p>
+<p>All applications were built and containerized using framework-provided <em>building tools</em> (Maven/Gradle plugins), which automatically produce Docker images in a local registry for both JVM and native builds.</p>
+<p>No framework-specific <em>tuning</em> was applied (e.g. GC, thread pools, or server settings). GraalVM native images were also built with default settings (Serial GC, no optimization flags, or target architecture tuning).</p>
+<p>An <em>important constraint</em>: execution model could not be fully normalized across frameworks without losing ergonomics. In particular, Micronaut didn’t provide a built-in mechanism to offload request body parsing and validation from the event loop to a worker pool, see <a href="https://github.com/micronaut-projects/micronaut-core/issues/10742" rel="noopener noreferrer" target="_blank">issue</a>. As a result, <em>defaults</em> were applied: for Quarkus - executing on a fixed worker pool (200 threads); for Micronaut - executing on event-loop threads.</p>
+<h3 id="execution-environment">Execution environment<a class="autolink" aria-label="Link to this heading" href="#execution-environment">#</a></h3>
+<h4 id="hardware--environment">Hardware &amp; environment</h4>
+<p>All benchmarks were executed locally on a dedicated desktop machine:</p>
+<ul>
+<li><strong>OS</strong>: Linux Mint (kernel 5.15.0);</li>
+<li><strong>CPU</strong>: Intel Core i7;</li>
+<li><strong>Memory</strong>: 32 GB RAM;</li>
+<li><strong>Storage</strong>: 500 GB SSD.</li>
+</ul>
+<h4 id="runtime--frameworks">Runtime &amp; frameworks</h4>
+<ul>
+<li><strong>Spring Boot</strong> v4.0;</li>
+<li><strong>Quarkus</strong> v3.30;</li>
+<li><strong>Micronaut</strong> v4.6;</li>
+<li><strong>JDK &amp; GraalVM CE JDK</strong> v25.</li>
+</ul>
+<h4 id="helping-toolset">Helping toolset</h4>
+<ul>
+<li><strong>Load generator</strong>: Grafana k6 v1.6;</li>
+<li><strong>Container runtime</strong>: Docker Engine v29.1.3;</li>
+<li><strong>Automation</strong>: Bash scripts;</li>
+<li><strong>Visualization</strong>: Google Sheets.</li>
+</ul>
+<h4 id="execution-constraints">Execution constraints</h4>
+<p>Each application was containerized and run under identical <a href="https://docs.docker.com/engine/containers/resource_constraints/" rel="noopener noreferrer" target="_blank">limits</a>: <strong>2 CPU cores and 1GB RAM</strong>:</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> run</span><span style="color:#79B8FF"> -d</span><span style="color:#79B8FF"> --name</span><span style="color:#E1E4E8"> $FRAMEWORK</span><span style="color:#9ECBFF">-</span><span style="color:#E1E4E8">$MODE </span><span style="color:#79B8FF">--cpuset-cpus=</span><span style="color:#9ECBFF">&quot;0,1&quot;</span><span style="color:#79B8FF"> --memory=1G</span><span style="color:#79B8FF"> -p</span><span style="color:#9ECBFF"> 8080:8080</span><span style="color:#E1E4E8"> $IMAGE_NAME</span></span></code></pre>
+<h3 id="measurement-methodology">Measurement methodology<a class="autolink" aria-label="Link to this heading" href="#measurement-methodology">#</a></h3>
+<p>2 <a href="https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/" rel="noopener noreferrer" target="_blank">workload models</a> were used, serving different purposes:</p>
+<ul>
+<li>
+<p><em>Closed workload model (fixed concurrency)</em>:</p>
+<ul>
+<li>used to determine the maximum sustainable throughput (<strong>X<sub>max</sub></strong>) for each setup;</li>
+<li>each concurrency level was executed for <strong>2.5</strong> minutes;</li>
+<li>average latency and actual achieved throughput were recorded.</li>
+</ul>
+</li>
+<li>
+<p><em>Open workload model (fixed arrival rate)</em>:</p>
+<ul>
+<li>used to measure latency behavior under controlled offered load;</li>
+<li>each load level was sustained for <strong>15</strong> minutes;</li>
+<li>percentiles (p50, p95, p99) and actual achieved request rates were recorded.</li>
+</ul>
+</li>
+</ul>
+<p>For JVM-based setups, an additional <strong>2.5</strong>-minute warm-up phase (100 VUs) was applied prior to measurement to ensure JIT compilation of hot execution paths.</p>
+<p>Each experiment was repeated <strong>3</strong> times; <strong>median</strong> values are reported.</p>
+<h2 id="results">Results<a class="autolink" aria-label="Link to this heading" href="#results">#</a></h2>
+<p>Before looking at the results, here are a few <strong>terms</strong> used throughout the article.</p>
+<ul>
+<li><em>Scalability curves</em>: throughput vs concurrency curves (closed workload model), see the <a href="https://blog.popov-rnd.com/posts/server-scalability-curves" rel="noopener noreferrer" target="_blank">article</a></li>
+<li><em>“Knee”</em>: the point where increasing concurrency no longer yields proportional throughput gains, and latency starts to grow rapidly;</li>
+<li><em>Saturation</em>: the region where the system reaches its maximum sustainable throughput and additional load primarily increases latency;</li>
+<li><em>Throughput (X)</em>: achieved request rate (requests/sec, <em>RPS</em> for short);</li>
+<li><em>Concurrency (N)</em>: number of simultaneous in-flight requests (virtual users, VUs).</li>
+</ul>
+<h3 id="closed-workload-model">Closed workload model<a class="autolink" aria-label="Link to this heading" href="#closed-workload-model">#</a></h3>
+<p>In the <em>closed workload model</em> (fixed number of concurrent users), I first explored scalability curves over a wide range of concurrency levels.</p>
+<p>I used powers of 2 for concurrency: 1, 2, 4, 8, 16 … up to 1024. This helped to find where the knee starts.</p>
+<p>After that, I ran more tests in that region with step = 2, for example: 4, 6, 8, 10 … up to 16 and 32. These points are shown on the charts.</p>
+<p>The k6 load generator script is available on <a href="https://github.com/popov-rnd/scripted-benchmarks/blob/jvm-vs-native/k6/run_k6_closed-loop_ingest.js" rel="noopener noreferrer" target="_blank"><em>GitHub</em></a></p>
+<p><em>To compare JVM and native modes:</em></p>
+<p>Maximum throughput (X<sub>max</sub>) was taken as the highest stable request rate under increasing concurrency, representing the system’s <em>capacity limit</em>. The ratio X<sub>max</sub>(JVM) / X<sub>max</sub>(native) was used for comparison.</p>
+<h4 id="spring-boot">Spring Boot</h4>
+<p>Spring Boot curves were a bit tricky. The <em>“knee”</em> appeared around N ≈ 8-12. After that, throughput continued to grow and reached ≈26–27k RPS at N ≈ 256–512, but this was clearly due to <em>request queuing</em>, not real processing capacity.</p>
+<p>Because of that, only the region near the knee (<strong>Fig. 1.1</strong>) is considered meaningful. It clearly shows saturation for both JVM and native setups.</p>
+<p>For consistency across frameworks, X<sub>max</sub> is taken at the knee (effectively X<sub>knee</sub>).</p>
+<figure class="m-6 text-center"> <img src="/_astro/spring-closed-model.C4cfZKze_Z130XHW.webp" alt="Spring Boot: concurrency vs throughput curve" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1.1 </strong> <p>Spring Boot application’s concurrency vs throughput curve: X<sub>diff</sub>≈1.75x between JVM and native</p> </figcaption> </figure>
+<p><em>Peak throughput (X<sub>max</sub>)</em>:</p>
+<ul>
+<li>JVM ~22k RPS vs Native ~12k RPS (<strong>≈1.8× higher for JVM</strong>)</li>
+</ul>
+<h4 id="quarkus">Quarkus</h4>
+<p>Quarkus curves’ (<strong>Fig. 1.2</strong>) saturation appeared much later for both set-ups: JVM- and native-based. Unlike Spring Boot, Quarkus already fully saturated at nearly N=32, so X<sub>max</sub> ~ X<sub>knee</sub> in this case.</p>
+<figure class="m-6 text-center"> <img src="/_astro/quarkus-closed-model.BwSgyrSm_ZagFWm.webp" alt="Quarkus: concurrency vs throughput curve" loading="lazy" decoding="async" fetchpriority="auto" width="601" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1.2 </strong> <p>Quarkus application’s concurrency vs throughput curve: X<sub>diff</sub>≈1.65x between JVM and native</p> </figcaption> </figure>
+<p><em>Peak throughput (X<sub>max</sub>)</em>:</p>
+<ul>
+<li>JVM ~28k RPS vs Native ~17k RPS (<strong>≈1.75× higher for JVM</strong>)</li>
+</ul>
+<h4 id="micronaut">Micronaut</h4>
+<p>Micronaut curves’ plateau (<strong>Fig. 1.3</strong>) for JVM-based app appeared closer to Quarkus but for native-based app in between Spring Boot and Quarkus.</p>
+<figure class="m-6 text-center"> <img src="/_astro/micronaut-closed-model.DKQkiENo_Zi012W.webp" alt="Micronaut: concurrency vs throughput curve" loading="lazy" decoding="async" fetchpriority="auto" width="601" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 1.3 </strong> <p>Micronaut application’s concurrency vs throughput curve: X<sub>diff</sub>≈1.8x between JVM and native</p> </figcaption> </figure>
+<p><em>Peak throughput (X<sub>max</sub>)</em>:</p>
+<ul>
+<li>JVM ~27k RPS vs Native ~15k RPS (<strong>≈1.8× higher for JVM</strong>)</li>
+</ul>
+<p>Across all closed workload model experiments, JVM-based setups consistently showed <em>higher throughput</em> than native ones.</p>
+<p>This difference becomes most visible around the <em>“knee”</em> region, where native setups reach saturation earlier, while JVM setups continue to scale further.</p>
+<h3 id="open-workload-model">Open workload model<a class="autolink" aria-label="Link to this heading" href="#open-workload-model">#</a></h3>
+<p>In the <em>open workload model</em> (fixed request arrival rate), I measured latency under increasing load.</p>
+<p>This model better reflects real-world conditions and exposes saturation effects more clearly, avoiding what is known as <em>“coordinated omission”</em> <a href="https://grafana.com/docs/k6/latest/using-k6/scenarios/concepts/open-vs-closed/#drawbacks-of-using-the-closed-model" rel="noopener noreferrer" target="_blank">effect</a>.</p>
+<p>Load was increased stepwise (starting from ~0.4–0.6×X<sub>max</sub>, depending on the framework, up to ~1×X<sub>max</sub>) to capture the transition from stable operation to saturation and latency explosion.</p>
+<p>Both <em>p95</em> and <em>p99</em> latency were recorded; only <em>p99</em> is shown, as it provided the most stable and comparable results across runs.</p>
+<p><em>Dropped iterations</em> were also observed at higher load levels for all setups. This occurs when the load generator cannot sustain the configured arrival rate, indicating saturation and excessive response times.</p>
+<p>The k6 load generator script is available on <a href="https://github.com/popov-rnd/scripted-benchmarks/blob/jvm-vs-native/k6/run_k6_open-loop_ingest.js" rel="noopener noreferrer" target="_blank"><em>GitHub</em></a>:</p>
+<p><em>To compare JVM and native modes:</em></p>
+<ul>
+<li>Define a meaningful SLA (e.g., p99 latency &lt; 50 ms or &lt; 30 ms);</li>
+<li>Identify the maximum offered load for each mode that satisfies the SLA;</li>
+<li>Compare throughput by taking the ratio of these stable load levels.</li>
+</ul>
+<h4 id="spring-boot-1">Spring Boot</h4>
+<p><strong>Fig. 2.1</strong> shows <em>p99</em> latency as a function of offered load under the open workload model for Spring Boot. Latency remains stable at moderate load levels but increases sharply as the system approaches saturation, indicating the onset of queueing.</p>
+<p>Dropped iterations were observed at X=14k RPS for native setup and X=26k RPS for JVM setup, confirming that the generator could no longer sustain the configured arrival rate.</p>
+<figure class="m-6 text-center"> <img src="/_astro/spring-open-model.DnKv6rrD_Z2o5n5c.webp" alt="Spring Boot: offered load vs latency (p99) column chart" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 2.1 </strong> <p>Spring Boot application’s offered load vs latency (p99) column chart</p> </figcaption> </figure>
+<p><em>Throughput difference under SLA (p99) constraints:</em></p>
+<ul>
+<li><strong>&lt; 50 ms</strong>: JVM ~22k RPS vs Native ~12k <strong>(≈1.8× for JVM)</strong>;</li>
+<li><strong>&lt; 30 ms</strong>: JVM ~22k RPS vs Native ~10k <strong>(≈2.2× for JVM)</strong>.</li>
+</ul>
+<h4 id="quarkus-1">Quarkus</h4>
+<p><strong>Fig. 2.2</strong> illustrates <em>p99</em> latency under increasing offered load for Quarkus. The system operates in a stable regime up to saturation, after which queueing dominates and latency grows rapidly.</p>
+<p>Dropped iterations and latencies spikes appear at <em>~12k RPS</em> (native) and <em>~20k RPS</em> (JVM), marking the limits of sustainable throughput.</p>
+<figure class="m-6 text-center"> <img src="/_astro/quarkus-open-model.WOaZ-Grm_Yzrx.webp" alt="Quarkus: offered load vs latency (p99) column chart" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 2.2 </strong> <p>Quarkus application’s offered load vs latency (p99) column chart</p> </figcaption> </figure>
+<p><em>Throughput difference under SLA (p99) constraints:</em></p>
+<ul>
+<li><strong>&lt; 50 ms</strong>: JVM ~20k RPS vs Native ~10k <strong>(≈2.0× for JVM)</strong>;</li>
+<li><strong>&lt; 30 ms</strong>: JVM ~18k RPS vs Native ~10k <strong>(≈1.8× for JVM)</strong>.</li>
+</ul>
+<h4 id="micronaut-1">Micronaut</h4>
+<p><strong>Fig. 2.3</strong> illustrates how <em>p99</em> latency evolves with increasing offered load for Micronaut. The system operates in a stable regime up to saturation, after which latency grows rapidly due to queueing effects. Dropped iterations at <em>~14k RPS</em> (native) and <em>~24k RPS</em> (JVM) mark the point where the configured load exceeds sustainable capacity.</p>
+<figure class="m-6 text-center"> <img src="/_astro/micronaut-open-model.C0YCXTaG_Z25C1uU.webp" alt="Micronaut: offered load vs latency (p99) column chart" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 2.3 </strong> <p>Micronaut application’s offered load vs latency (p99) column chart</p> </figcaption> </figure>
+<p><em>Throughput difference under SLA (p99) constraints:</em></p>
+<ul>
+<li><strong>&lt; 50 ms/ &lt; 30 ms</strong>: JVM ~20k RPS vs Native ~12k <strong>(≈1.65× for JVM)</strong>.</li>
+</ul>
+<p>As in the previous experiment, JVM-based setups consistently achieved <strong>higher throughput</strong> than native ones across all open-loop scenarios.</p>
+<p>At the same offered load, JVM mode consistently shows <em>~1.5-2.5× lower p99 latency</em> compared to native.</p>
+<h3 id="resource-usage-analysis">Resource usage analysis<a class="autolink" aria-label="Link to this heading" href="#resource-usage-analysis">#</a></h3>
+<p>The picture would be incomplete without analyzing CPU and memory consumption under load.</p>
+<p>Unlike many benchmarks that report resource usage at startup or idle, the focus here is resource behavior at meaningful operating points — when the system is actually doing work.</p>
+<p>The <em>key questions</em> were:</p>
+<ul>
+<li><em><strong>At which load level should resource usage be measured?</strong></em></li>
+<li><em><strong>How should CPU and memory consumption be measured reliably?</strong></em></li>
+</ul>
+<p>To answer the 1st question, I reused the results from the open workload experiments and selected the last stable operating points that meet a <em>50 ms p99 latency SLA</em>.
+These points represent a comparable and realistic load zone, where both JVM and native setups are still operating without degradation.</p>
+<p>To answer the 2nd question, since all applications run in containers, I used Docker’s native stats <a href="https://docs.docker.com/reference/cli/docker/container/stats/" rel="noopener noreferrer" target="_blank">command</a></p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8;overflow-x:auto" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#B392F0">docker</span><span style="color:#9ECBFF"> stats</span><span style="color:#79B8FF"> --no-stream</span><span style="color:#79B8FF"> --format</span><span style="color:#9ECBFF"> &quot;{{.CPUPerc}},{{.MemUsage}}&quot;</span><span style="color:#E1E4E8"> $CONTAINER_NAME</span></span></code></pre>
+<p>During each test run (<em>15 minutes</em>), the target container was polled at a fixed interval (<em>1 second</em>), and the metrics were collected into a <em>.csv</em> file.</p>
+<p>After the test, the data was analyzed in <em>Google Sheets</em> using standard aggregations such as <code>AVERAGE</code> and <code>MAX</code>.
+These aggregated values are reported and visualized in the charts below.</p>
+<p><em>Notes on interpretation</em>:</p>
+<ul>
+<li>CPU percentages above 100% reflect multicore usage and must be interpreted accordingly;</li>
+<li>Memory metrics include runtime/system overhead (e.g., JVM internals, native allocations);</li>
+<li>Short spikes may be smoothed due to 1-second sampling.</li>
+</ul>
+<h4 id="spring-boot-2">Spring Boot</h4>
+<p>Spring Boot application was tested under: <em>12k RPS</em> in native and <em>22k RPS</em> in JVM mode in open workload model.
+The aggregated results are shown on <strong>Fig. 3.1</strong>.</p>
+<figure class="m-6 text-center"> <img src="/_astro/spring-ram-usage.DbcUu-by_Z27bNCQ.webp" alt="Spring Boot: RAM usage under load" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 3.1 </strong> <p>Spring Boot RAM usage at last stable operating points: Native 12k RPS | JVM 22k RPS</p> </figcaption> </figure>
+<p><em>Resource usage at stable operating points:</em></p>
+<ul>
+<li><strong>Memory</strong>: Native ~114 MB vs JVM ~519 MB <strong>(≈4.5× lower for native)</strong>;</li>
+<li><strong>CPU</strong>: Native ~177% (~88.5%/core) vs JVM ~149% (~74.5%/core) <strong>(higher for native)</strong>.</li>
+</ul>
+<h4 id="quarkus-2">Quarkus</h4>
+<p>Quarkus application was tested under: <em>10k RPS</em> in native and <em>20k RPS</em> in JVM mode in open workload model.
+The aggregated results are shown on <strong>Fig. 3.2</strong>.</p>
+<figure class="m-6 text-center"> <img src="/_astro/quarkus-ram-usage.Dxclq9QZ_Z1hhFel.webp" alt="Quarkus: RAM usage under load" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 3.2 </strong> <p>Quarkus RAM usage at last stable operating points: Native 10k RPS | JVM 20k RPS</p> </figcaption> </figure>
+<p><em>Resource usage at stable operating points:</em></p>
+<ul>
+<li><strong>Memory</strong>: Native ~36 MB vs JVM ~557 MB <strong>(≈15.5× lower for native)</strong>;</li>
+<li><strong>CPU</strong>: Native ~113% (~56.5%/core) vs JVM ~148% (~74%/core) <strong>(higher for JVM)</strong>.</li>
+</ul>
+<h4 id="micronaut-2">Micronaut</h4>
+<p>Micronaut application was tested under: <em>12k RPS</em> in native and <em>20k RPS</em> in JVM mode in open workload model.
+The aggregated results are shown on <strong>Fig. 3.3</strong>.</p>
+<figure class="m-6 text-center"> <img src="/_astro/micronaut-ram-usage.YRJ81EK-_ZqJCAd.webp" alt="Micronaut: RAM usage under load" loading="lazy" decoding="async" fetchpriority="auto" width="600" height="371"> <figcaption class="mt-2 text-sm text-neutral-600 dark:text-neutral-300"> <strong>Fig. 3.3 </strong> <p>Micronaut RAM usage at last stable operating points: Native 12k RPS | JVM 20k RPS</p> </figcaption> </figure>
+<p><em>Resource usage at stable operating points:</em></p>
+<ul>
+<li><strong>Memory</strong>: Native ~52 MB vs JVM ~255 MB <strong>(≈4.9× lower for native)</strong>;</li>
+<li><strong>CPU</strong>: Native ~170% (~85%/core) vs JVM ~148% (~74%/core) <strong>(higher for native)</strong>.</li>
+</ul>
+<p>Overall, the <strong>trend</strong> is clear: native containers consistently consume significantly less memory, with reductions ranging from <em>~4.5× to 15×</em> in these experiments.</p>
+<p>CPU usage, however, does not exhibit a uniform pattern. Depending on the framework, native setups may either consume more or fewer CPU cycles.</p>
+<h2 id="conclusion">Conclusion<a class="autolink" aria-label="Link to this heading" href="#conclusion">#</a></h2>
+<p>This study shows a clear and <em>repeatable pattern</em>.</p>
+<p>For the tested request path, across all frameworks and execution models, JVM-mode consistently delivered <strong>~1.4–2× higher throughput</strong>, while native mode achieved <strong>~4.5–15× lower memory footprint</strong> under high load (near saturation).</p>
+<p>CPU behavior was mixed and should be treated as framework-specific rather than as a property of JVM or native alone.</p>
+<p>The practical takeaway is that JVM and native optimize for different goals:</p>
+<ul>
+<li>JVM optimizes <strong>performance per instance</strong>: more capacity, fewer instances, and lower latency under moderate load.</li>
+<li>Native optimizes <strong>memory efficiency</strong>: smaller footprint, more instances per node, and cheaper horizontal scaling.</li>
+</ul>
+<p>For highly loaded services, JVM should be treated as the <em>default</em> unless memory is the real limiting factor. Native is not a leaner JVM alternative; it is a different trade-off point with a very strong memory profile and a weaker throughput ceiling.</p>
+<p>This result represents a specific slice of the problem space — a synchronous HTTP request path with JSON parsing and validation under constrained resources.</p>
+<p>Different workloads, execution models, or tuning strategies may shift these trade-offs, and should be evaluated separately.</p>
+<h2 id="references">References<a class="autolink" aria-label="Link to this heading" href="#references">#</a></h2>
+<ul>
+<li>
+<p><a href="https://github.com/popov-rnd/springboot-benchmark/tree/jvm-vs-native" rel="noopener noreferrer" target="_blank">Spring Boot benchmark repository</a></p>
+</li>
+<li>
+<p><a href="https://github.com/popov-rnd/quarkus-benchmark/tree/jvm-vs-native" rel="noopener noreferrer" target="_blank">Quarkus benchmark repository</a></p>
+</li>
+<li>
+<p><a href="https://github.com/popov-rnd/micronaut-benchmark/tree/jvm-vs-native" rel="noopener noreferrer" target="_blank">Micronaut benchmark repository</a></p>
+</li>
+<li>
+<p><a href="https://github.com/popov-rnd/scripted-benchmarks/blob/jvm-vs-native/k6/run_k6_closed-loop_ingest.js" rel="noopener noreferrer" target="_blank">Grafana k6 closed-model script</a></p>
+</li>
+<li>
+<p><a href="https://github.com/popov-rnd/scripted-benchmarks/blob/jvm-vs-native/k6/run_k6_open-loop_ingest.js" rel="noopener noreferrer" target="_blank">Grafana k6 open-model script</a></p>
+</li>
+</ul>
+<h3 id="related-recent-works">Related recent works<a class="autolink" aria-label="Link to this heading" href="#related-recent-works">#</a></h3>
+<ul>
+<li><a href="https://quarkus.io/blog/new-benchmarks/" rel="noopener noreferrer" target="_blank">Holly Cummins (Quarkus blog, 2026) Quarkus has great performance – and we have new evidence</a></li>
+<li><a href="https://www.the-main-thread.com/p/quarkus-performance-benchmarks-java-developers" rel="noopener noreferrer" target="_blank">Markus Eisele (The main thread, 2026) Why Benchmarking Java Frameworks Is Harder Than It Looks</a></li>
+</ul>  </div> </article> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <nav aria-label="Previous and next articles" class="grid grid-cols-2 gap-5"><div class="flex flex-col items-start gap-3
+                p-2
+                text-sm
+                bg-transparent
+                border border-zinc-500
+                rounded-sm"><p class="font-normal text-zinc-600 dark:text-zinc-300">Previous</p><a href="/posts/server-scalability-curves/" class="
+                inline-flex items-center gap-2
+                font-semibold
+                text-neutral-600 dark:text-prnd-neon hover:scale-101 active:scale-99"><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 24 24" class="shrink-0 w-4 h-4 text-neutral-600 dark:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" d="M0 0h24v24H0z"></path><path d="M17.59 18 19 16.59 14.42 12 19 7.41 17.59 6l-6 6z"></path><path d="m11 18 1.41-1.41L7.83 12l4.58-4.59L11 6l-6 6z"></path></svg><span>Server scalability curves: a method of systems performance analysis</span></a></div></nav> <hr class="h-px border-0 my-6 w-full bg-gradient-to-r from-neutral-500 to-transparent"> <aside id="about-author" class="mt-0 pt-6"> <section> <div class="flex gap-4 rounded-2xl bg-zinc-100/70 dark:bg-neutral-800/60 px-4 py-4 sm:px-5 sm:py-5"> <div class="shrink-0"> <img src="/_astro/avatar.h0uefq9r_Z1i5gFo.webp" alt="Andrii Popov" loading="lazy" decoding="async" fetchpriority="auto" width="259" height="259" class="h-12 w-12 rounded-full bg-neutral-300 dark:bg-neutral-600"> </div> <div class="space-y-2 text-sm leading-relaxed"> <h2 class="text-xs font-semibold uppercase tracking-wide text-neutral-500">
+About the author
+</h2> <p class="font-medium text-neutral-900 dark:text-neutral-50">
+Andrii Popov · Popov R&amp;D — Independent Engineering Lab
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+Independent software engineer focused on JVM-based production systems, the Spring ecosystem, and modern front-end delivery. I run independent experiments and publish architectural analysis — benchmarks, performance knees, and trade-offs — about what actually works in practice.
+</p> <p class="text-neutral-700 dark:text-neutral-300">
+If you’d like to collaborate, feel free to reach out on LinkedIn.
+</p> <ul class="flex flex-wrap gap-3 pt-1 text-xs"> <li> <a href="https://popov-rnd.com" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="w-5 h-5 text-cyan-600 dark:text-cyan-200 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48C141.13 48 48 141.13 48 256s93.13 208 208 208 208-93.13 208-208S370.87 48 256 48z"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48c-58.07 0-112.67 93.13-112.67 208S197.93 464 256 464s112.67-93.13 112.67-208S314.07 48 256 48z"></path><path fill="none" stroke-linecap="round" stroke-linejoin="round" stroke-width="32" d="M117.33 117.33c38.24 27.15 86.38 43.34 138.67 43.34s100.43-16.19 138.67-43.34m0 277.34c-38.24-27.15-86.38-43.34-138.67-43.34s-100.43 16.19-138.67 43.34"></path><path fill="none" stroke-miterlimit="10" stroke-width="32" d="M256 48v416m208-208H48"></path></svg> <span>Website</span> </a> </li> <li> <a href="https://www.linkedin.com/in/Popov85/" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 448 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M416 32H31.9C14.3 32 0 46.5 0 64.3v383.4C0 465.5 14.3 480 31.9 480H416c17.6 0 32-14.5 32-32.3V64.3c0-17.8-14.4-32.3-32-32.3zM135.4 416H69V202.2h66.5V416zm-33.2-243c-21.3 0-38.5-17.3-38.5-38.5S80.9 96 102.2 96c21.2 0 38.5 17.3 38.5 38.5 0 21.3-17.2 38.5-38.5 38.5zm282.1 243h-66.4V312c0-24.8-.5-56.7-34.5-56.7-34.6 0-39.9 27-39.9 54.9V416h-66.4V202.2h63.7v29.2h.9c8.9-16.8 30.6-34.5 62.9-34.5 67.2 0 79.7 44.3 79.7 101.9V416z"></path></svg> <span>LinkedIn</span> </a> </li> <li> <a href="https://github.com/Popov85" class="inline-flex items-center gap-1 hover:underline underline-offset-4"> <svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 496 512" class="w-5 h-5 text-neutral-800 dark:text-neutral-300 hover:scale-110 active:scale-95" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg> <span>GitHub</span> </a> </li> </ul> </div> </div> </section> </aside> </main> <script>(()=>{var e=async t=>{await(await t())()};(self.Astro||(self.Astro={})).load=e;window.dispatchEvent(new Event("astro:load"));})();</script><astro-island uid="Z2fQQ55" prefix="r11" component-url="/_astro/ScrollToTopButton.P8reXH2a.js" component-export="ScrollToTopButton" renderer-url="/_astro/client.B_PwMJWB.js" props="{}" ssr client="load" opts="{&quot;name&quot;:&quot;ScrollToTopButton&quot;,&quot;value&quot;:true}" await-children><button aria-label="Scroll to top" class="
+                fixed bottom-6 right-6 z-[999]
+                flex items-center justify-center
+                w-12 h-12 rounded-full
+                bg-neutral-700 dark:bg-neutral-200
+                text-neutral-200 dark:text-neutral-700
+                shadow-lg shadow-black/25
+                transition-all duration-300
+                active:scale-95
+                lg:hidden
+                opacity-0 pointer-events-none
+              "><svg stroke="currentColor" fill="currentColor" stroke-width="0" viewBox="0 0 512 512" class="text-2xl active:text-prnd-neon" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M256 217.9L383 345c9.4 9.4 24.6 9.4 33.9 0 9.4-9.4 9.3-24.6 0-34L273 167c-9.1-9.1-23.7-9.3-33.1-.7L95 310.9c-4.7 4.7-7 10.9-7 17s2.3 12.3 7 17c9.4 9.4 24.6 9.4 33.9 0l127.1-127z"></path></svg></button><!--astro:end--></astro-island> <footer class="mt-auto">  <hr class="mx-auto my-8 border-t border-neutral-300 dark:border-neutral-400 max-w-lg"> <div class="text-xs text-neutral-500 dark:text-neutral-300 flex flex-col justify-center items-center gap-1 pb-6"> <div><span>© 2026 Popov R&amp;D</span></div> <div>All rights reserved.</div> </div> </footer> </body></html>
