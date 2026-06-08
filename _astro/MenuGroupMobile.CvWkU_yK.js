@@ -1,4 +1,4 @@
-import{j as e}from"./jsx-runtime.D_zvdyIk.js";import{r as o}from"./index.Be8AcK8B.js";const l=({opened:t,setIsOpened:n})=>{const s=[{id:"home",path:"/",label:"Home"},{id:"posts",path:"/posts",label:"Posts"},{id:"about",path:"/about",label:"About"},{id:"search",path:"/search",label:"Search"}];return e.jsx("div",{className:`
+import{j as e}from"./jsx-runtime.u17CrQMm.js";import{r as o}from"./index.C2KC86Ta.js";const l=({opened:t,setIsOpened:n})=>{const s=[{id:"home",path:"/",label:"Home"},{id:"posts",path:"/posts",label:"Posts"},{id:"about",path:"/about",label:"About"},{id:"search",path:"/search",label:"Search"}];return e.jsx("div",{className:`
                 fixed top-[65px] right-0
                 h-[calc(100vh-65px)] w-full overflow-y-auto
                 bg-gray-50 dark:bg-neutral-900 z-600
