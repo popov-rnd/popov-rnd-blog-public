@@ -150,22 +150,23 @@ Dark
 <p>Importantly, this flag is not Tomcat-specific. It is an application-wide Spring Boot setting that also affects framework-managed task execution, scheduling, and asynchronous processing. This design choice is discussed by <em>Brian Clozel</em> in this GitHub <a href="https://github.com/spring-projects/spring-boot/issues/41937" rel="noopener noreferrer" target="_blank">comment</a>.</p>
 <p>Overall, Spring Boot lets the application choose the execution model through configuration, and then adapts embedded Tomcat accordingly.</p>
 <h3 id="how-tomcat-is-designed-internally">How Tomcat is designed internally<a class="autolink" aria-label="Link to this heading" href="#how-tomcat-is-designed-internally">#</a></h3>
-<p>Apache Tomcat was originally designed primarily as a <em>Servlet/JSP</em> container, not as a general-purpose web server like <em>Apache HTTPD</em>. In modern Tomcat, standalone HTTP handling is provided through <em>Connectors</em>.</p>
+<p>Apache Tomcat was designed from the beginning primarily as a <em>Servlet/JSP</em> container, with built-in HTTP handling implemented by its <em>Connectors</em>.</p>
 <p>For this article, it is enough to view Tomcat as 2 large <em>logical parts</em>:</p>
 <ul>
 <li><a href="https://tomcat.apache.org/tomcat-11.0-doc/config/http.html?" rel="noopener noreferrer" target="_blank"><em>Connector</em></a> / Network side: accepts TCP connections, watches sockets, and schedules socket-processing work;</li>
-<li><a href="https://tomcat.apache.org/tomcat-11.0-doc/config/context.html" rel="noopener noreferrer" target="_blank"><em>Container</em></a> / Catalina side: runs the Servlet pipeline and eventually reaches Spring MVC and application code.</li>
+<li><a href="https://tomcat.apache.org/tomcat-11.0-doc/config/context.html" rel="noopener noreferrer" target="_blank"><em>Container</em></a> / Catalina side: runs the Servlet pipeline and eventually reaches framework and application code.</li>
 </ul>
-<p>I will focus more on the <em>Connector</em> side because this is where the key distinction between the <em>PT-per-request</em> and <em>VT-per-request</em> models starts.</p>
-<p>The official Tomcat UML-sequence <a href="https://tomcat.apache.org/tomcat-11.0-doc/architecture/requestProcess/11_nio.png" rel="noopener noreferrer" target="_blank">diagram</a> explains how request processing is performed inside the <em>Connector</em>.</p>
+<p>I’ll focus on the <em>Connector</em>, where the distinction between <em>PT-per-request</em> and <em>VT-per-request</em> begins.</p>
+<p>Tomcat provides 2 main implementations: the <em>default</em>, recommended, and best-documented <em>NIO</em> connector, and <em>NIO2</em>. They expose nearly identical <a href="https://tomcat.apache.org/tomcat-11.0-doc/config/http.html#Connector_Comparison" rel="noopener noreferrer" target="_blank">behaviour</a>, differing mainly in their low-level socket I/O impl.</p>
+<p>The official Tomcat UML-sequence <a href="https://tomcat.apache.org/tomcat-11.0-doc/architecture/requestProcess/11_nio.png" rel="noopener noreferrer" target="_blank">diagram</a> explains how request processing is performed inside the NIO <em>Connector</em>.</p>
 <ul>
 <li><em>Acceptor</em> accepts new socket connections (up to <code>maxConnections</code>);</li>
 <li><em>Poller</em> detects socket readiness and submits processing work to an <em>Executor</em>;</li>
 <li><em>Executor</em> runs the submitted task on either a platform thread or a virtual thread;</li>
 <li><em>Coyote</em> is the protocol engine that handles <em>HTTP/1.1</em> and <em>HTTP/2</em> mechanics.</li>
 </ul>
-<p>When <em>Acceptor</em> has already reached the connections limit, new connection attempts may wait in the OS backlog queue, whose requested size is controlled by <code>acceptCount</code>.</p>
-<p>In Tomcat’s Connector, a ready socket is wrapped in a lightweight <em>SocketProcessor</em>: an internal Runnable submitted to the <em>Executor</em>, with <strong>~17 KB</strong> of retained state in my heap snapshots.</p>
+<p>When <em>Acceptor</em> has already reached the connections limit, new connection attempts may wait in the <em>OS backlog queue</em>, whose requested size is controlled by <code>acceptCount</code>.</p>
+<p>In both <em>Connectors</em>, a ready socket is wrapped in a lightweight <em>SocketProcessor</em> (<a href="https://github.com/apache/tomcat/blob/11.0.x/java/org/apache/tomcat/util/net/NioEndpoint.java" rel="noopener noreferrer" target="_blank">NIO</a>, <a href="https://github.com/apache/tomcat/blob/11.0.x/java/org/apache/tomcat/util/net/Nio2Endpoint.java" rel="noopener noreferrer" target="_blank">NIO2</a>): an internal Runnable submitted to the <em>Executor</em> to continue processing through <em>Coyote</em> and, eventually, the <em>Servlet container</em>.</p>
 <p>The next sections look at both <a href="https://tomcat.apache.org/tomcat-11.0-doc/config/executor.html" rel="noopener noreferrer" target="_blank"><em>Executor</em></a> implementations separately.</p>
 <h2 id="model-1-pt-per-request">Model #1: PT-per-request<a class="autolink" aria-label="Link to this heading" href="#model-1-pt-per-request">#</a></h2>
 <p><strong>Fig. 1</strong> shows how Apache Tomcat executes blocking requests using a worker platform thread pool.</p>
